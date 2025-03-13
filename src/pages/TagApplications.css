@@ -1,0 +1,280 @@
+/* CSS for tag applications functionality */
+
+/* Tag list in professional profile */
+.tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 15px 0;
+  }
+  
+  .profile-tag {
+    background-color: #3498db;
+    color: white;
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-size: 0.9rem;
+    display: inline-block;
+  }
+  
+  /* Tag application form */
+  .tag-application-form {
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 20px;
+  }
+  
+  .form-group {
+    margin-bottom: 20px;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #2c3e50;
+  }
+  
+  .form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+  }
+  
+  .form-text {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-top: 5px;
+    display: block;
+  }
+  
+  /* File upload styling */
+  .file-upload-container {
+    position: relative;
+    margin-bottom: 10px;
+  }
+  
+  .file-input {
+    position: absolute;
+    left: -9999px;
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  
+  .file-upload-label {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    background-color: #f1f3f5;
+    border: 1px dashed #ced4da;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+    width: 100%;
+  }
+  
+  .file-upload-label:hover {
+    background-color: #e9ecef;
+    border-color: #adb5bd;
+  }
+  
+  .file-icon {
+    font-size: 1.2rem;
+    margin-right: 10px;
+  }
+  
+  .file-text {
+    font-size: 0.9rem;
+    color: #495057;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  .btn-application {
+    margin-top: 10px;
+    padding: 10px 20px;
+  }
+  
+  /* Applications table */
+  .applications-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+  }
+  
+  .applications-table th,
+  .applications-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #e9ecef;
+  }
+  
+  .applications-table th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+    color: #2c3e50;
+  }
+  
+  .applications-table tr:hover {
+    background-color: #f1f8ff;
+  }
+  
+  .applications-table tr.status-pending {
+    background-color: #fff8e1;
+  }
+  
+  .applications-table tr.status-approved {
+    background-color: #f0fff4;
+  }
+  
+  .applications-table tr.status-rejected {
+    background-color: #fff5f5;
+  }
+  
+  /* Action buttons */
+  .action-buttons {
+    display: flex;
+    gap: 10px;
+  }
+  
+  /* Status messages */
+  .success-message {
+    background-color: #d4edda;
+    color: #155724;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    position: relative;
+  }
+  
+  .error-message {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    position: relative;
+  }
+  
+  .info-message {
+    background-color: #e1f5fe;
+    color: #01579b;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+  }
+  
+  .close-button {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: inherit;
+  }
+  
+  /* Filter controls */
+  .filter-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  /* Empty state message */
+  .empty-state {
+    padding: 30px;
+    text-align: center;
+    color: #6c757d;
+    font-style: italic;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+  }
+  
+  /* Dashboard cards */
+  .dashboard-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+    margin-bottom: 30px;
+  }
+  
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #edf2f7;
+  }
+  
+  .card-header h3 {
+    font-size: 1.2rem;
+    color: #2d3748;
+    margin: 0;
+  }
+  
+  .card-content {
+    padding: 20px;
+  }
+  
+  /* Apply button */
+  .apply-button {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+  }
+  
+  .apply-button:disabled {
+    background-color: #cbd5e0;
+    cursor: not-allowed;
+  }
+  
+  /* Fix footer position */
+  #root {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .App {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  main, .dashboard-page {
+    flex: 1 0 auto;
+  }
+  
+  footer {
+    flex-shrink: 0;
+    margin-top: auto;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .applications-table {
+      display: block;
+      overflow-x: auto;
+    }
+    
+    .filter-controls {
+      flex-wrap: wrap;
+    }
+    
+    .action-buttons {
+      flex-direction: column;
+    }
+    
+    .modal-content {
+      width: 95%;
+      padding: 15px;
+    }
+  }
+  
