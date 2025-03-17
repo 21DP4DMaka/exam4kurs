@@ -8,6 +8,7 @@ import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import ProfessionalProfilePage from './pages/ProfessionalProfilePage';
 import AdminTagApplicationsPage from './pages/AdminTagApplicationsPage';
+import AdminUsersPage from './pages/AdminUsersPage';
 import QuestionsPage from './pages/QuestionsPage';
 import AskQuestionPage from './pages/AskQuestionPage';
 import QuestionViewPage from './pages/QuestionViewPage';
@@ -16,7 +17,7 @@ import { authService } from './services/api';
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
-  const [currentPage, setCurrentPage] = useState('home'); // 'home', 'login', 'register', 'dashboard', 'professional-profile', 'admin-tag-applications', 'questions', 'ask-question', 'question-view'
+  const [currentPage, setCurrentPage] = useState('home'); // 'home', 'login', 'register', 'dashboard', 'professional-profile', 'admin-tag-applications', 'admin-users', 'questions', 'ask-question', 'question-view'
   const [isLoading, setIsLoading] = useState(true);
   const [selectedQuestionId, setSelectedQuestionId] = useState(null);
   
@@ -113,6 +114,19 @@ function App() {
         }
         if (user && user.role === 'admin') {
           return <AdminTagApplicationsPage />;
+        }
+        return <DashboardPage 
+          user={user} 
+          setCurrentPage={setCurrentPage} 
+          handleViewQuestion={handleViewQuestion}
+        />;
+      case 'admin-users':
+        // Check if user is administrator
+        if (!isLoggedIn) {
+          return <LoginPage onLogin={handleLogin} />;
+        }
+        if (user && user.role === 'admin') {
+          return <AdminUsersPage />;
         }
         return <DashboardPage 
           user={user} 

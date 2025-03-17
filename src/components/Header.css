@@ -203,3 +203,11 @@ nav ul li a.active {
   background-color: #6c757d;
   color: white;
 }
+.admin-users-btn {
+  background: #805ad5; 
+  margin-left: 10px;
+}
+
+.admin-users-btn:hover {
+  background: #6b46c1;
+}

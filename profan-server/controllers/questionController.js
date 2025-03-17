@@ -1,4 +1,4 @@
-const { Question, User, Tag, Answer, sequelize } = require('../models');
+const { Question, User, Tag, Answer, sequelize, Notification } = require('../models');
 const { Op } = require('sequelize');
 const notificationController = require('./notificationController');
 
@@ -263,5 +263,108 @@ exports.updateQuestion = async (req, res) => {
     await t.rollback();
     console.error('Error updating question:', error);
     res.status(500).json({ message: 'Servera kļūda atjauninot jautājumu' });
+  }
+};
+
+// Delete a question (Admin only)
+exports.deleteQuestion = async (req, res) => {
+  const t = await sequelize.transaction();
+  
+  try {
+    const questionId = req.params.id;
+    
+    // Find the question
+    const question = await Question.findByPk(questionId, {
+      include: [
+        {
+          model: Answer,
+          attributes: ['id']
+        }
+      ]
+    });
+    
+    if (!question) {
+      await t.rollback();
+      return res.status(404).json({ message: 'Jautājums nav atrasts' });
+    }
+    
+    // Check if the user is an admin
+    if (req.user.role !== 'admin') {
+      await t.rollback();
+      return res.status(403).json({ message: 'Tikai administratori var dzēst jautājumus' });
+    }
+    
+    // Delete all associated answers
+    if (question.Answers && question.Answers.length > 0) {
+      const answerIds = question.Answers.map(answer => answer.id);
+      await Answer.destroy({
+        where: { id: { [Op.in]: answerIds } },
+        transaction: t
+      });
+    }
+    
+    // Remove tag associations
+    await question.setTags([], { transaction: t });
+    
+    // Delete question
+    await question.destroy({ transaction: t });
+    
+    // Create notification for the question author
+    await Notification.create({
+      userId: question.userId,
+      content: `Jūsu jautājums "${question.title.substring(0, 50)}..." tika dzēsts administratora dēļ satura noteikumu pārkāpuma.`,
+      type: 'system',
+      isRead: false
+    }, { transaction: t });
+    
+    await t.commit();
+    
+    res.json({
+      message: 'Jautājums veiksmīgi dzēsts',
+      questionId: questionId
+    });
+  } catch (error) {
+    await t.rollback();
+    console.error('Error deleting question:', error);
+    res.status(500).json({ message: 'Servera kļūda dzēšot jautājumu' });
+  }
+};
+
+// Add a reason for deletion
+exports.reportQuestion = async (req, res) => {
+  try {
+    const questionId = req.params.id;
+    const { reason } = req.body;
+    
+    // Find the question
+    const question = await Question.findByPk(questionId);
+    
+    if (!question) {
+      return res.status(404).json({ message: 'Jautājums nav atrasts' });
+    }
+    
+    // Find admin users
+    const admins = await User.findAll({
+      where: { role: 'admin' }
+    });
+    
+    // Create notification for each admin
+    for (const admin of admins) {
+      await Notification.create({
+        userId: admin.id,
+        content: `Jautājums ID: ${questionId} tika ziņots. Iemesls: ${reason}`,
+        type: 'system',
+        relatedQuestionId: questionId,
+        isRead: false
+      });
+    }
+    
+    res.json({
+      message: 'Ziņojums par jautājumu veiksmīgi iesniegts',
+      questionId: questionId
+    });
+  } catch (error) {
+    console.error('Error reporting question:', error);
+    res.status(500).json({ message: 'Servera kļūda ziņojot par jautājumu' });
   }
 };

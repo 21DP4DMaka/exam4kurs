@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { User, ProfessionalProfile, Tag } = require('../models');
 const { authenticateToken, isAdmin } = require('../middleware/auth');
+const userController = require('../controllers/userController');
 
 // Iegūt lietotāja profilu pēc ID
 router.get('/:id', async (req, res) => {
@@ -110,30 +111,13 @@ router.put('/profile', authenticateToken, async (req, res) => {
   }
 });
 
-// Administratora maršruti lietotāju pārvaldībai
-router.get('/', authenticateToken, isAdmin, async (req, res) => {
-  try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const offset = (page - 1) * limit;
-    
-    const { count, rows } = await User.findAndCountAll({
-      attributes: { exclude: ['password'] },
-      limit,
-      offset,
-      order: [['createdAt', 'DESC']]
-    });
-    
-    res.json({
-      users: rows,
-      totalItems: count,
-      totalPages: Math.ceil(count / limit),
-      currentPage: page
-    });
-  } catch (error) {
-    console.error('Error fetching users:', error);
-    res.status(500).json({ message: 'Servera kļūda iegūstot lietotājus' });
-  }
-});
+// Admin user management routes
+router.get('/admin/users', authenticateToken, isAdmin, userController.getAllUsers);
+router.post('/:id/ban', authenticateToken, isAdmin, userController.banUser);
+router.post('/:id/unban', authenticateToken, isAdmin, userController.unbanUser);
+router.delete('/:id', authenticateToken, isAdmin, userController.deleteUser);
+
+// Report user route
+router.post('/:id/report', authenticateToken, userController.reportUser);
 
 module.exports = router;

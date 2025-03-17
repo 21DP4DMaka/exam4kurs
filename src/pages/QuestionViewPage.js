@@ -1,6 +1,8 @@
+// src/pages/QuestionViewPage.js
 import React, { useState, useEffect } from 'react';
 import { questionService, answerService, tagService } from '../services/api';
 import './QuestionViewPage.css';
+import ReportModal from '../components/ReportModal';
 
 function QuestionViewPage({ questionId, user, setCurrentPage }) {
   const [question, setQuestion] = useState(null);
@@ -13,6 +15,8 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
   const [submitSuccess, setSubmitSuccess] = useState(null);
   const [canAnswer, setCanAnswer] = useState(false);
   const [userTags, setUserTags] = useState([]);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   
   // Ielādēt jautājuma datus
   useEffect(() => {
@@ -186,6 +190,46 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
     setCurrentPage('login');
   };
   
+  // Handle reporting a question
+  const handleReportQuestion = async (reason) => {
+    try {
+      await questionService.reportQuestion(questionId, { reason });
+      setSubmitSuccess('Ziņojums veiksmīgi iesniegts! Paldies par jūsu ieguldījumu platformas uzturēšanā.');
+      
+      // Auto-hide success message after 3 seconds
+      setTimeout(() => {
+        setSubmitSuccess(null);
+      }, 3000);
+    } catch (error) {
+      console.error('Kļūda iesniedzot ziņojumu:', error);
+      setSubmitError('Kļūda iesniedzot ziņojumu. Lūdzu, mēģiniet vēlreiz.');
+    }
+  };
+
+  // Handle deleting a question (admin only)
+  const handleDeleteQuestion = async () => {
+    if (!user || user.role !== 'admin') {
+      setError('Tikai administratori var dzēst jautājumus');
+      return;
+    }
+    
+    if (!window.confirm('Vai tiešām vēlaties dzēst šo jautājumu? Šo darbību nevar atsaukt.')) {
+      return;
+    }
+    
+    try {
+      setIsDeleting(true);
+      await questionService.deleteQuestion(questionId);
+      
+      // Return to questions page after successful deletion
+      setCurrentPage('questions');
+    } catch (error) {
+      console.error('Kļūda dzēšot jautājumu:', error);
+      setError('Kļūda dzēšot jautājumu. Lūdzu, mēģiniet vēlreiz.');
+      setIsDeleting(false);
+    }
+  };
+  
   // Formatē datumu
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
@@ -240,6 +284,27 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
             <div className="question-author">
               <span className="author-name">{question.User ? question.User.username : 'Nezināms lietotājs'}</span>
               <span className="post-date">jautāja {formatDate(question.createdAt)}</span>
+            </div>
+            
+            <div className="question-actions">
+              {user && user.role === 'admin' && (
+                <button 
+                  className="btn btn-sm btn-danger"
+                  onClick={handleDeleteQuestion}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? 'Dzēš...' : 'Dzēst jautājumu'}
+                </button>
+              )}
+              
+              {user && user.id !== question.userId && (
+                <button 
+                  className="btn btn-sm btn-outline"
+                  onClick={() => setShowReportModal(true)}
+                >
+                  Ziņot
+                </button>
+              )}
             </div>
           </div>
           
@@ -368,6 +433,14 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
           )}
         </div>
       </div>
+      
+      {/* Report Modal */}
+      <ReportModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        onSubmit={handleReportQuestion}
+        type="question"
+      />
     </div>
   );
 }

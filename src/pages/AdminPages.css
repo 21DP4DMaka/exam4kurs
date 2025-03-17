@@ -1,0 +1,176 @@
+
+/* Admin tables */
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+  }
+  
+  .admin-table th,
+  .admin-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #e9ecef;
+  }
+  
+  .admin-table th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+    color: #2c3e50;
+  }
+  
+  .admin-table tr:hover {
+    background-color: #f1f8ff;
+  }
+  
+  .admin-table tr.banned-user {
+    background-color: #fff5f5;
+  }
+  
+  .admin-table tr.banned-user:hover {
+    background-color: #fee2e2;
+  }
+  
+  /* Status badges */
+  .status-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+  
+  .status-badge.active {
+    background-color: #d1fae5;
+    color: #047857;
+  }
+  
+  .status-badge.banned {
+    background-color: #fee2e2;
+    color: #b91c1c;
+  }
+  
+  .status-badge.suspended {
+    background-color: #fff7cd;
+    color: #92400e;
+  }
+  
+  /* Action buttons */
+  .action-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .modal-content {
+    background-color: white;
+    border-radius: 8px;
+    padding: 25px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .modal-content h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #2c3e50;
+  }
+  
+  .modal-user-info {
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+  }
+  
+  .modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 25px;
+  }
+  
+  .warning-message {
+    background-color: #fff5f5;
+    border: 1px solid #fee2e2;
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 20px;
+    color: #b91c1c;
+  }
+  
+  /* Search box */
+  .search-box {
+    margin-bottom: 20px;
+  }
+  
+  .search-box form {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .search-input {
+    flex: 1;
+    padding: 12px 15px;
+    border: 1px solid #e2e8f0;
+    border-radius: 5px;
+    font-size: 1rem;
+  }
+  
+  .search-input:focus {
+    outline: none;
+    border-color: #3498db;
+  }
+  
+  .search-btn {
+    padding: 0 20px;
+  }
+  
+  /* Pagination styles are already in QuestionsPage.css */
+  
+  /* Filter controls */
+  .filter-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .admin-table {
+      display: block;
+      overflow-x: auto;
+    }
+    
+    .search-box form {
+      flex-direction: column;
+    }
+    
+    .filter-controls {
+      flex-wrap: wrap;
+    }
+    
+    .action-buttons {
+      flex-direction: column;
+    }
+    
+    .modal-content {
+      width: 95%;
+      padding: 15px;
+    }
+  }

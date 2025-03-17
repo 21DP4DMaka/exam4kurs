@@ -3,7 +3,7 @@ const { User } = require('../models');
 
 exports.authenticateToken = async (req, res, next) => {
   try {
-    // Проверяем заголовок Authorization или параметр запроса token
+    // Check Authorization header or query parameter token
     const authHeader = req.headers.authorization;
     const queryToken = req.query.token;
     
@@ -23,6 +23,14 @@ exports.authenticateToken = async (req, res, next) => {
     
     if (!user) {
       return res.status(401).json({ message: 'Lietotājs neeksistē' });
+    }
+    
+    // Check if user is banned
+    if (user.status === 'banned') {
+      return res.status(403).json({ 
+        message: 'Jūsu konts ir bloķēts',
+        reason: user.banReason || 'Lietošanas noteikumu pārkāpums'
+      });
     }
     
     req.user = user;

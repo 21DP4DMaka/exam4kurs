@@ -49,14 +49,22 @@ function Header({ isLoggedIn, user, onLogout, setCurrentPage }) {
                   {user && user.role === 'regular' && <span className="role-badge regular">Lietotājs</span>}
                 </a>
                 
-                {/* Admin button for tag applications - now moved here as requested */}
+                {/* Admin buttons for user management and tag applications */}
                 {isLoggedIn && user && user.role === 'admin' && (
-                  <button 
-                    className="btn btn-primary admin-app-btn"
-                    onClick={(e) => handleNavigation('admin-tag-applications', e)}
-                  >
-                    Tagu Pieteikumi
-                  </button>
+                  <>
+                    <button 
+                      className="btn btn-primary admin-users-btn"
+                      onClick={(e) => handleNavigation('admin-users', e)}
+                    >
+                      Lietotāju pārvalde
+                    </button>
+                    <button 
+                      className="btn btn-primary admin-app-btn"
+                      onClick={(e) => handleNavigation('admin-tag-applications', e)}
+                    >
+                      Tagu Pieteikumi
+                    </button>
+                  </>
                 )}
                 
                 {/* Only regular users can ask questions */}

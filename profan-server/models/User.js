@@ -29,6 +29,14 @@ const User = sequelize.define('User', {
     type: DataTypes.ENUM('regular', 'power', 'admin'),
     defaultValue: 'regular'
   },
+  status: {
+    type: DataTypes.ENUM('active', 'banned', 'suspended'),
+    defaultValue: 'active'
+  },
+  banReason: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
   profileImage: {
     type: DataTypes.STRING(255),
     allowNull: true
