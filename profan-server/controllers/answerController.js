@@ -1,6 +1,7 @@
-const { Answer, Question, User, Notification, sequelize } = require('../models');
+const { Answer, Question, User, Tag, ProfessionalProfile, Notification, sequelize } = require('../models');
+const { Op } = require('sequelize');
 
-// Izveidot jaunu atbildi
+// Izveidot jaunu atbildi - UPDATED to check for matching tags
 exports.createAnswer = async (req, res) => {
   const t = await sequelize.transaction();
   
@@ -9,11 +10,48 @@ exports.createAnswer = async (req, res) => {
     const userId = req.user.id;
     
     // Pārbaudīt vai jautājums eksistē
-    const question = await Question.findByPk(questionId);
+    const question = await Question.findByPk(questionId, {
+      include: [
+        {
+          model: Tag,
+          through: { attributes: [] }
+        }
+      ]
+    });
     
     if (!question) {
       await t.rollback();
       return res.status(404).json({ message: 'Jautājums nav atrasts' });
+    }
+    
+    // Pārbaudīt, vai lietotājs ir profesionālis vai administrators
+    if (req.user.role !== 'power' && req.user.role !== 'admin') {
+      await t.rollback();
+      return res.status(403).json({ message: 'Tikai profesionāļi var atbildēt uz jautājumiem' });
+    }
+    
+    // Iegūt lietotāja profesionālo profilu un tagus
+    const userProfile = await ProfessionalProfile.findOne({
+      where: { userId },
+      include: [{
+        model: Tag
+      }]
+    });
+    
+    if (!userProfile) {
+      await t.rollback();
+      return res.status(403).json({ message: 'Jums nav profesionālā profila' });
+    }
+    
+    // Pārbaudīt, vai lietotājam ir kāds no jautājuma tagiem
+    const questionTagIds = question.Tags.map(tag => tag.id);
+    const userTagIds = userProfile.Tags.map(tag => tag.id);
+    
+    const hasMatchingTag = questionTagIds.some(tagId => userTagIds.includes(tagId));
+    
+    if (!hasMatchingTag) {
+      await t.rollback();
+      return res.status(403).json({ message: 'Jums nav atbilstošo kategoriju, lai atbildētu uz šo jautājumu' });
     }
     
     // Izveidot jaunu atbildi

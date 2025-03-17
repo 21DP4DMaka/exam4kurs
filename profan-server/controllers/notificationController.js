@@ -1,3 +1,4 @@
+// profan-server/controllers/notificationController.js
 const { Notification, Question, User, Tag, ProfessionalProfile, sequelize } = require('../models');
 const { Op } = require('sequelize');
 
@@ -84,7 +85,7 @@ exports.markAllAsRead = async (req, res) => {
   }
 };
 
-// Izveidot jaunus paziņojumus profesionāļiem par jautājumiem viņu kategorijās
+// Izveidot jaunus paziņojumus profesionāļiem par jautājumiem viņu kategorijās - UPDATED
 exports.createQuestionNotificationsForProfessionals = async (question, tags) => {
   const t = await sequelize.transaction();
   
@@ -94,7 +95,7 @@ exports.createQuestionNotificationsForProfessionals = async (question, tags) => 
       return [];
     }
     
-    // Atrast profesionāļus, kuriem ir šie tagi
+    // MODIFIED: Atrast TIKAI profesionāļus, kuriem ir TIEŠI ŠIE tagi
     const professionals = await User.findAll({
       where: {
         [Op.or]: [
@@ -111,18 +112,19 @@ exports.createQuestionNotificationsForProfessionals = async (question, tags) => 
             id: {
               [Op.in]: tags
             }
-          }
+          },
+          required: true // This ensures professionals must have at least one matching tag
         }]
       }]
     });
     
     if (professionals.length === 0) {
-      console.log('Nav atrasti profesionāļi šiem tagiem');
+      console.log('Nav atrasti profesionāļi ar atbilstošiem tagiem');
       await t.commit();
       return [];
     }
     
-    // Izveidot paziņojumus katram profesionālim
+    // Izveidot paziņojumus katram profesionālim ar atbilstošiem tagiem
     const notifications = [];
     for (const professional of professionals) {
       // Nenosūtīt paziņojumu pašam jautājuma autoram

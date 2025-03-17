@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { questionService, answerService } from '../services/api';
+import { questionService, answerService, tagService } from '../services/api';
 import './QuestionViewPage.css';
 
 function QuestionViewPage({ questionId, user, setCurrentPage }) {
@@ -11,6 +11,8 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
   const [submitSuccess, setSubmitSuccess] = useState(null);
+  const [canAnswer, setCanAnswer] = useState(false);
+  const [userTags, setUserTags] = useState([]);
   
   // Ielādēt jautājuma datus
   useEffect(() => {
@@ -43,12 +45,47 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
     }
   }, [questionId]);
   
+  // Ielādēt lietotāja tagus, ja ir profesionālis
+  useEffect(() => {
+    const fetchUserTags = async () => {
+      if (user && (user.role === 'power' || user.role === 'admin')) {
+        try {
+          const response = await tagService.getUserProfessionalTags(user.id);
+          setUserTags(response.data);
+        } catch (error) {
+          console.error('Kļūda ielādējot lietotāja tagus:', error);
+        }
+      }
+    };
+    
+    fetchUserTags();
+  }, [user]);
+  
+  // Pārbaudīt, vai lietotājs var atbildēt uz jautājumu
+  useEffect(() => {
+    if (user && question && (user.role === 'power' || user.role === 'admin') && userTags.length > 0) {
+      // Pārbaudīt, vai lietotājam ir kāds tags, kas sakrīt ar jautājuma tagiem
+      const questionTagIds = question.Tags.map(tag => tag.id);
+      const userTagIds = userTags.map(tag => tag.id);
+      
+      const hasMatchingTag = questionTagIds.some(tagId => userTagIds.includes(tagId));
+      setCanAnswer(hasMatchingTag);
+    } else {
+      setCanAnswer(false);
+    }
+  }, [user, question, userTags]);
+  
   // Atbildes iesniegšana
   const handleSubmitAnswer = async (e) => {
     e.preventDefault();
     
     if (!user) {
       setSubmitError('Lai atbildētu, jums jāpieslēdzas.');
+      return;
+    }
+    
+    if (!canAnswer) {
+      setSubmitError('Jums nav atbilstošo kategoriju, lai atbildētu uz šo jautājumu.');
       return;
     }
     
@@ -300,6 +337,10 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
                   <button className="btn btn-primary" onClick={navigateToLogin}>
                     Pieslēgties, lai atbildētu
                   </button>
+                </div>
+              ) : !canAnswer ? (
+                <div className="permission-required">
+                  <p>Tikai profesionāļi ar atbilstošiem kategorijas tagiem var atbildēt uz šo jautājumu.</p>
                 </div>
               ) : (
                 <form onSubmit={handleSubmitAnswer}>

@@ -53,6 +53,7 @@ nav ul li a.active {
 .auth-buttons {
   display: flex;
   gap: 10px;
+  align-items: center;
 }
 
 .btn {
@@ -105,6 +106,16 @@ nav ul li a.active {
 .btn-sm {
   padding: 4px 10px;
   font-size: 0.8rem;
+}
+
+/* Updated admin applications button style */
+.admin-app-btn {
+  background: #e74c3c;
+  margin-left: 10px;
+}
+
+.admin-app-btn:hover {
+  background: #c0392b;
 }
 
 @media (max-width: 768px) {

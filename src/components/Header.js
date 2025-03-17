@@ -19,18 +19,6 @@ function Header({ isLoggedIn, user, onLogout, setCurrentPage }) {
             <li><a href="/questions" onClick={(e) => handleNavigation('questions', e)}>Jautājumi</a></li>
             <li><a href="/tags" onClick={(e) => e.preventDefault()}>Kategorijas</a></li>
             <li><a href="/about" onClick={(e) => e.preventDefault()}>Par mums</a></li>
-            
-            {/* Administratora saite tagu pieteikumiem (tikai adminiem) */}
-            {isLoggedIn && user && user.role === 'admin' && (
-              <li>
-                <a 
-                  href="/admin-applications" 
-                  onClick={(e) => handleNavigation('admin-tag-applications', e)}
-                >
-                  Tagu Pieteikumi
-                </a>
-              </li>
-            )}
           </ul>
           <div className="auth-buttons">
             {!isLoggedIn ? (
@@ -59,12 +47,27 @@ function Header({ isLoggedIn, user, onLogout, setCurrentPage }) {
                   {user && user.role === 'admin' && <span className="role-badge admin">Admin</span>}
                   {user && user.role === 'power' && <span className="role-badge power">Pro</span>}
                 </a>
-                <button
-                  className="btn btn-primary ask-question-btn"
-                  onClick={(e) => handleNavigation('ask-question', e)}
-                >
-                  Uzdot jautājumu
-                </button>
+                
+                {/* Admin button for tag applications - now moved here as requested */}
+                {isLoggedIn && user && user.role === 'admin' && (
+                  <button 
+                    className="btn btn-primary admin-app-btn"
+                    onClick={(e) => handleNavigation('admin-tag-applications', e)}
+                  >
+                    Tagu Pieteikumi
+                  </button>
+                )}
+                
+                {/* Only regular users can ask questions */}
+                {isLoggedIn && user && user.role === 'regular' && (
+                  <button
+                    className="btn btn-primary ask-question-btn"
+                    onClick={(e) => handleNavigation('ask-question', e)}
+                  >
+                    Uzdot jautājumu
+                  </button>
+                )}
+                
                 <button 
                   className="btn btn-outline"
                   onClick={onLogout}
