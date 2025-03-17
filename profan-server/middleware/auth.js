@@ -3,8 +3,16 @@ const { User } = require('../models');
 
 exports.authenticateToken = async (req, res, next) => {
   try {
+    // Проверяем заголовок Authorization или параметр запроса token
     const authHeader = req.headers.authorization;
-    const token = authHeader && authHeader.split(' ')[1];
+    const queryToken = req.query.token;
+    
+    let token;
+    if (authHeader) {
+      token = authHeader.split(' ')[1];
+    } else if (queryToken) {
+      token = queryToken;
+    }
     
     if (!token) {
       return res.status(401).json({ message: 'Nepieciešama autentifikācija' });

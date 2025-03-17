@@ -17,6 +17,12 @@ function ProfessionalProfilePage() {
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Получение токена для URL
+  const getDocumentUrl = (applicationId) => {
+    const token = localStorage.getItem('token');
+    return `http://localhost:5000/api/tag-applications/${applicationId}/document?token=${token}`;
+  };
+
   // Ielādēt lietotāja datus un tagus
   useEffect(() => {
     const fetchData = async () => {
@@ -24,6 +30,12 @@ function ProfessionalProfilePage() {
         setIsLoading(true);
         const userResponse = await authService.getCurrentUser();
         setUser(userResponse.data.user);
+        
+        // Отладочная информация
+        console.log('Пользователь:', userResponse.data.user);
+        if (userResponse.data.user.ProfessionalProfile) {
+          console.log('Профессиональный профиль:', userResponse.data.user.ProfessionalProfile);
+        }
 
         // Ielādēt visus tagus
         const tagsResponse = await tagService.getTags();
@@ -34,10 +46,15 @@ function ProfessionalProfilePage() {
           const applicationsResponse = await tagService.getUserTagApplications();
           setApplications(applicationsResponse.data);
           
-          // Iegūt lietotāja tagus no ProfessionalProfile
-          if (userResponse.data.user.ProfessionalProfile && 
-              userResponse.data.user.ProfessionalProfile.Tags) {
-            setUserTags(userResponse.data.user.ProfessionalProfile.Tags);
+          // Загрузить профессиональные теги пользователя
+          try {
+            // Получаем теги профессионального профиля
+            const userTagsResponse = await tagService.getUserProfessionalTags(userResponse.data.user.id);
+            if (userTagsResponse.data && Array.isArray(userTagsResponse.data)) {
+              setUserTags(userTagsResponse.data);
+            }
+          } catch (tagError) {
+            console.error('Ошибка загрузки тегов профиля:', tagError);
           }
         }
 
@@ -75,6 +92,14 @@ function ProfessionalProfilePage() {
     try {
       const applicationsResponse = await tagService.getUserTagApplications();
       setApplications(applicationsResponse.data);
+      
+      // Обновляем также теги пользователя (на случай если они изменились)
+      if (user && user.id) {
+        const userTagsResponse = await tagService.getUserProfessionalTags(user.id);
+        if (userTagsResponse.data && Array.isArray(userTagsResponse.data)) {
+          setUserTags(userTagsResponse.data);
+        }
+      }
     } catch (error) {
       console.error('Kļūda atjaunojot pieteikumu sarakstu:', error);
     }
@@ -214,7 +239,7 @@ function ProfessionalProfilePage() {
                       <td>{application.notes || '-'}</td>
                       <td>
                         <a 
-                          href={`http://localhost:5000/api/tag-applications/${application.id}/document`} 
+                          href={getDocumentUrl(application.id)} 
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="btn btn-sm btn-outline"

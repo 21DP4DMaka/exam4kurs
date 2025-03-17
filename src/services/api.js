@@ -3,7 +3,7 @@ import axios from 'axios';
 
 const API_URL = 'http://localhost:5000/api';
 
-// Axios instance ar noklusējuma konfigurāciju
+// Axios instance с конфигурацией по умолчанию
 const apiClient = axios.create({
   baseURL: API_URL,
   headers: {
@@ -11,7 +11,7 @@ const apiClient = axios.create({
   }
 });
 
-// Pievieno autorizācijas token visiem pieprasījumiem, ja tas ir pieejams
+// Добавляем токен авторизации ко всем запросам, если он доступен
 apiClient.interceptors.request.use(
   config => {
     const token = localStorage.getItem('token');
@@ -25,14 +25,14 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Auth servisi
+// Auth сервисы
 export const authService = {
   register: (userData) => apiClient.post('/auth/register', userData),
   login: (credentials) => apiClient.post('/auth/login', credentials),
   getCurrentUser: () => apiClient.get('/auth/me')
 };
 
-// Jautājumu servisi
+// Сервисы вопросов
 export const questionService = {
   getQuestions: (params) => apiClient.get('/questions', { params }),
   getQuestionById: (id) => apiClient.get(`/questions/${id}`),
@@ -40,23 +40,30 @@ export const questionService = {
   updateQuestion: (id, questionData) => apiClient.put(`/questions/${id}`, questionData)
 };
 
-// Atbilžu servisi
+// Сервисы ответов
 export const answerService = {
   createAnswer: (answerData) => apiClient.post('/answers', answerData),
   acceptAnswer: (id) => apiClient.patch(`/answers/${id}/accept`)
 };
 
-// Paziņojumu servisi
+// Сервисы уведомлений
 export const notificationService = {
   getNotifications: (params) => apiClient.get('/notifications', { params }),
-  markAsRead: (id) => apiClient.patch(`/notifications/${id}/read`)
+  markAsRead: (id) => apiClient.patch(`/notifications/${id}/read`),
+  markAllAsRead: () => apiClient.patch('/notifications/read-all')
 };
 
-// Tagu servisi
+// Сервисы тегов
 export const tagService = {
   getTags: () => apiClient.get('/tags'),
   
-  // Tagu pieteikumu servisi
+  // Получить профессиональные теги пользователя
+  getUserProfessionalTags: (userId) => apiClient.get(`/users/${userId}/professional-tags`),
+  
+  // Получить теги профессионального профиля
+  getProfileTags: (profileId) => apiClient.get(`/professional-profiles/${profileId}/tags`),
+  
+  // Сервисы заявок на теги
   getUserTagApplications: () => apiClient.get('/tag-applications/user'),
   getTagApplications: (params) => apiClient.get('/tag-applications', { params }),
   applyForTag: (formData) => {
@@ -72,19 +79,4 @@ export const tagService = {
     apiClient.put(`/tag-applications/${id}/review`, reviewData),
   getTagApplicationDocument: (id) => 
     `${API_URL}/tag-applications/${id}/document`
-};
-
-// Lietotāju servisi
-export const userService = {
-  getUserProfile: (id) => apiClient.get(`/users/${id}`),
-  updateProfile: (profileData) => apiClient.put('/users/profile', profileData)
-};
-
-export default {
-  auth: authService,
-  questions: questionService,
-  answers: answerService,
-  notifications: notificationService,
-  tags: tagService,
-  users: userService
 };

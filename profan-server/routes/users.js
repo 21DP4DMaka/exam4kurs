@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { User, ProfessionalProfile } = require('../models');
+const { User, ProfessionalProfile, Tag } = require('../models');
 const { authenticateToken, isAdmin } = require('../middleware/auth');
 
 // Iegūt lietotāja profilu pēc ID
@@ -24,6 +24,34 @@ router.get('/:id', async (req, res) => {
   } catch (error) {
     console.error('Error fetching user:', error);
     res.status(500).json({ message: 'Servera kļūda iegūstot lietotāju' });
+  }
+});
+
+// Получить профессиональные теги пользователя
+router.get('/:id/professional-tags', async (req, res) => {
+  try {
+    const userId = req.params.id;
+    
+    // Находим профессиональный профиль пользователя с тегами
+    const profile = await ProfessionalProfile.findOne({
+      where: { userId },
+      include: [
+        {
+          model: Tag,
+          through: { attributes: [] },
+          attributes: ['id', 'name', 'description']
+        }
+      ]
+    });
+    
+    if (!profile) {
+      return res.json([]);
+    }
+    
+    res.json(profile.Tags || []);
+  } catch (error) {
+    console.error('Error fetching professional tags:', error);
+    res.status(500).json({ message: 'Servera kļūda iegūstot profesionālos tagus' });
   }
 });
 

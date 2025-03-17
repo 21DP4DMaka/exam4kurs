@@ -16,6 +16,12 @@ function AdminTagApplicationsPage() {
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewAction, setReviewAction] = useState(''); // 'approve' or 'reject'
 
+  // Получение токена для URL
+  const getDocumentUrl = (applicationId) => {
+    const token = localStorage.getItem('token');
+    return `http://localhost:5000/api/tag-applications/${applicationId}/document?token=${token}`;
+  };
+
   // Ielādēt datus
   useEffect(() => {
     const fetchData = async () => {
@@ -236,7 +242,7 @@ function AdminTagApplicationsPage() {
                       <td>{application.notes || '-'}</td>
                       <td>
                         <a 
-                          href={`http://localhost:5000/api/tag-applications/${application.id}/document`} 
+                          href={getDocumentUrl(application.id)} 
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="btn btn-sm btn-outline"

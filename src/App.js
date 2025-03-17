@@ -8,13 +8,17 @@ import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import ProfessionalProfilePage from './pages/ProfessionalProfilePage';
 import AdminTagApplicationsPage from './pages/AdminTagApplicationsPage';
+import QuestionsPage from './pages/QuestionsPage';
+import AskQuestionPage from './pages/AskQuestionPage';
+import QuestionViewPage from './pages/QuestionViewPage';
 import { authService } from './services/api';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
-  const [currentPage, setCurrentPage] = useState('home'); // 'home', 'login', 'register', 'dashboard', 'professional-profile', 'admin-tag-applications'
+  const [currentPage, setCurrentPage] = useState('home'); // 'home', 'login', 'register', 'dashboard', 'professional-profile', 'admin-tag-applications', 'questions', 'ask-question', 'question-view'
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedQuestionId, setSelectedQuestionId] = useState(null);
   
   // Pārbaudīt, vai lietotājs jau ir pieteicies (pārbaudot tokenu)
   useEffect(() => {
@@ -62,6 +66,12 @@ function App() {
     setCurrentPage('dashboard');
   };
   
+  // Apstrādāt jautājuma atlasi
+  const handleViewQuestion = (questionId) => {
+    setSelectedQuestionId(questionId);
+    setCurrentPage('question-view');
+  };
+  
   // Pagaidām vienkāršs maršrutētājs - vēlāk aizstāt ar React Router
   const renderPage = () => {
     if (isLoading) {
@@ -94,6 +104,15 @@ function App() {
           return <AdminTagApplicationsPage />;
         }
         return <DashboardPage user={user} setCurrentPage={setCurrentPage} />;
+      case 'questions':
+        return <QuestionsPage setCurrentPage={setCurrentPage} handleViewQuestion={handleViewQuestion} />;
+      case 'ask-question':
+        return <AskQuestionPage user={user} setCurrentPage={setCurrentPage} />;
+      case 'question-view':
+        if (!selectedQuestionId) {
+          return <QuestionsPage setCurrentPage={setCurrentPage} handleViewQuestion={handleViewQuestion} />;
+        }
+        return <QuestionViewPage questionId={selectedQuestionId} user={user} setCurrentPage={setCurrentPage} />;
       case 'home':
       default:
         return <HomePage />;

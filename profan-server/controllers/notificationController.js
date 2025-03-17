@@ -1,4 +1,5 @@
-const { Notification } = require('../models');
+const { Notification, Question, User, Tag, ProfessionalProfile, sequelize } = require('../models');
+const { Op } = require('sequelize');
 
 // Iegūt lietotāja paziņojumus
 exports.getUserNotifications = async (req, res) => {
@@ -65,3 +66,86 @@ exports.markAsRead = async (req, res) => {
 };
 
 // Atzīmēt visus lietotāja paziņojumus kā lasītus
+exports.markAllAsRead = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    await Notification.update(
+      { isRead: true },
+      { where: { userId, isRead: false } }
+    );
+    
+    res.json({
+      message: 'Visi paziņojumi atzīmēti kā lasīti'
+    });
+  } catch (error) {
+    console.error('Error marking all notifications as read:', error);
+    res.status(500).json({ message: 'Servera kļūda atjauninot paziņojumus' });
+  }
+};
+
+// Izveidot jaunus paziņojumus profesionāļiem par jautājumiem viņu kategorijās
+exports.createQuestionNotificationsForProfessionals = async (question, tags) => {
+  const t = await sequelize.transaction();
+  
+  try {
+    if (!question || !tags || tags.length === 0) {
+      console.log('Nav jautājuma vai tagu');
+      return [];
+    }
+    
+    // Atrast profesionāļus, kuriem ir šie tagi
+    const professionals = await User.findAll({
+      where: {
+        [Op.or]: [
+          { role: 'power' },
+          { role: 'admin' }
+        ]
+      },
+      include: [{
+        model: ProfessionalProfile,
+        required: true,
+        include: [{
+          model: Tag,
+          where: {
+            id: {
+              [Op.in]: tags
+            }
+          }
+        }]
+      }]
+    });
+    
+    if (professionals.length === 0) {
+      console.log('Nav atrasti profesionāļi šiem tagiem');
+      await t.commit();
+      return [];
+    }
+    
+    // Izveidot paziņojumus katram profesionālim
+    const notifications = [];
+    for (const professional of professionals) {
+      // Nenosūtīt paziņojumu pašam jautājuma autoram
+      if (professional.id === question.userId) {
+        continue;
+      }
+      
+      const notification = await Notification.create({
+        userId: professional.id,
+        content: `Jauns jautājums jūsu kategorijā: "${question.title.substring(0, 50)}${question.title.length > 50 ? '...' : ''}"`,
+        type: 'question',
+        relatedQuestionId: question.id,
+        isRead: false
+      }, { transaction: t });
+      
+      notifications.push(notification);
+    }
+    
+    await t.commit();
+    return notifications;
+  } catch (error) {
+    await t.rollback();
+    console.error('Error creating notifications for professionals:', error);
+    return [];
+  }
+};

@@ -1,5 +1,6 @@
 const { Question, User, Tag, Answer, sequelize } = require('../models');
 const { Op } = require('sequelize');
+const notificationController = require('./notificationController');
 
 // Iegūt jautājumu sarakstu ar filtrēšanu
 exports.getQuestions = async (req, res) => {
@@ -11,6 +12,7 @@ exports.getQuestions = async (req, res) => {
     // Filtrēšanas parametri
     const tagIds = req.query.tags ? req.query.tags.split(',').map(id => parseInt(id)) : [];
     const searchQuery = req.query.search || '';
+    const status = req.query.status || null;
     
     // Bāzes vaicājuma nosacījumi
     let whereConditions = {};
@@ -23,6 +25,11 @@ exports.getQuestions = async (req, res) => {
           { content: { [Op.like]: `%${searchQuery}%` } }
         ]
       };
+    }
+    
+    // Pievienot statusa filtru, ja tas ir norādīts
+    if (status && status !== 'all') {
+      whereConditions.status = status;
     }
     
     // Veidojam vaicājuma opcijas
@@ -129,6 +136,14 @@ exports.createQuestion = async (req, res) => {
     const { title, content, tags } = req.body;
     const userId = req.user.id;
     
+    // Pārbaudīt, vai ir visi nepieciešamie dati
+    if (!title || !content || !tags || !tags.length) {
+      await t.rollback();
+      return res.status(400).json({ 
+        message: 'Lūdzu, aizpildiet visus obligātos laukus (virsraksts, saturs, tagi)' 
+      });
+    }
+    
     // Izveidot jautājumu
     const question = await Question.create({
       title,
@@ -136,16 +151,13 @@ exports.createQuestion = async (req, res) => {
       userId
     }, { transaction: t });
     
-    // Pievienot tagus, ja tie ir norādīti
-    if (tags && tags.length > 0) {
-      // Iegūt vai izveidot tagus
-      const tagInstances = await Promise.all(tags.map(async (tagId) => {
-        return await Tag.findByPk(tagId);
-      }));
-      
-      const validTags = tagInstances.filter(tag => tag !== null);
-      await question.setTags(validTags, { transaction: t });
-    }
+    // Pievienot tagus
+    const tagInstances = await Promise.all(tags.map(async (tagId) => {
+      return await Tag.findByPk(tagId);
+    }));
+    
+    const validTags = tagInstances.filter(tag => tag !== null);
+    await question.setTags(validTags, { transaction: t });
     
     await t.commit();
     
@@ -163,6 +175,17 @@ exports.createQuestion = async (req, res) => {
         }
       ]
     });
+    
+    // Nosūtīt paziņojumus profesionāļiem ar atbilstošiem tagiem
+    try {
+      await notificationController.createQuestionNotificationsForProfessionals(
+        newQuestion, 
+        tags
+      );
+    } catch (notifError) {
+      console.error('Error sending notifications:', notifError);
+      // Turpinām, pat ja paziņojumu sūtīšana neizdodas
+    }
     
     res.status(201).json({
       message: 'Jautājums veiksmīgi izveidots',

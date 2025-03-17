@@ -16,7 +16,7 @@ function Header({ isLoggedIn, user, onLogout, setCurrentPage }) {
         <nav>
           <ul>
             <li><a href="/" onClick={(e) => handleNavigation('home', e)}>Sākums</a></li>
-            <li><a href="/questions" onClick={(e) => e.preventDefault()}>Jautājumi</a></li>
+            <li><a href="/questions" onClick={(e) => handleNavigation('questions', e)}>Jautājumi</a></li>
             <li><a href="/tags" onClick={(e) => e.preventDefault()}>Kategorijas</a></li>
             <li><a href="/about" onClick={(e) => e.preventDefault()}>Par mums</a></li>
             
@@ -59,6 +59,12 @@ function Header({ isLoggedIn, user, onLogout, setCurrentPage }) {
                   {user && user.role === 'admin' && <span className="role-badge admin">Admin</span>}
                   {user && user.role === 'power' && <span className="role-badge power">Pro</span>}
                 </a>
+                <button
+                  className="btn btn-primary ask-question-btn"
+                  onClick={(e) => handleNavigation('ask-question', e)}
+                >
+                  Uzdot jautājumu
+                </button>
                 <button 
                   className="btn btn-outline"
                   onClick={onLogout}

@@ -37,12 +37,12 @@ app.get('/', (req, res) => {
   res.json({ message: 'Professional Answers API darbojas!' });
 });
 
-// Datubāzes sinhronizācija un servera palaišana
+// Datubāzes pārbaude un servera palaišana
 const startServer = async () => {
   try {
-    // Sinhronizēt datubāzi (ieslēgt {force: true} tikai izstrādes vidē!)
-    await sequelize.sync({ alter: true });
-    console.log('Datubāze veiksmīgi sinhronizēta');
+    // Vienkārši pārbaudam savienojumu, BEZ automātiskas tabulu izveidošanas
+    await sequelize.authenticate();
+    console.log('Veiksmīgs savienojums ar datubāzi');
     
     app.listen(PORT, () => {
       console.log(`Serveris darbojas uz porta ${PORT}`);

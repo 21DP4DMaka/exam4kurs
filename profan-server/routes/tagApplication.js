@@ -1,4 +1,3 @@
-// profan-server/routes/tagApplications.js
 const express = require('express');
 const router = express.Router();
 const tagApplicationController = require('../controllers/tagApplicationController');
@@ -16,7 +15,42 @@ router.use(fileUpload({
 // Lietotāju maršruti
 router.get('/user', authenticateToken, tagApplicationController.getUserApplications);
 router.post('/', authenticateToken, tagApplicationController.submitApplication);
-router.get('/:id/document', authenticateToken, tagApplicationController.getApplicationDocument);
+
+// Модифицированный маршрут для получения документа - поддерживает токен в URL
+router.get('/:id/document', async (req, res) => {
+  try {
+    const applicationId = req.params.id;
+    
+    // Вызываем функцию аутентификации вручную
+    const authMiddleware = require('../middleware/auth').authenticateToken;
+    authMiddleware(req, res, async () => {
+      const { TagApplication } = require('../models');
+      const fs = require('fs');
+      
+      const application = await TagApplication.findByPk(applicationId);
+      
+      if (!application) {
+        return res.status(404).json({ message: 'Pieteikums nav atrasts' });
+      }
+      
+      // Pārbaudīt vai lietotājam ir tiesības skatīt šo dokumentu
+      if (req.user.id !== application.userId && req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'Nav tiesību piekļūt šim dokumentam' });
+      }
+      
+      // Pārbaudīt vai fails eksistē
+      if (!fs.existsSync(application.documentPath)) {
+        return res.status(404).json({ message: 'Dokuments nav atrasts' });
+      }
+      
+      // Nosūtīt failu
+      res.sendFile(application.documentPath);
+    });
+  } catch (error) {
+    console.error('Error fetching application document:', error);
+    res.status(500).json({ message: 'Servera kļūda iegūstot dokumentu' });
+  }
+});
 
 // Administratoru maršruti
 router.get('/', authenticateToken, isAdmin, tagApplicationController.getAllApplications);
