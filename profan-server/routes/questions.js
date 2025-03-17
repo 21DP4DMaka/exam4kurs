@@ -10,7 +10,6 @@ router.get('/', questionController.getQuestions);
 router.get('/:id', questionController.getQuestionById);
 
 // Autentificētie maršruti
-// The issue is likely here - make sure middleware comes before the controller function
 router.post('/', authenticateToken, profanityFilter, questionController.createQuestion);
 router.put('/:id', authenticateToken, profanityFilter, questionController.updateQuestion);
 
