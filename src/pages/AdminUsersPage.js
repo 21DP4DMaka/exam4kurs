@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import './DashboardPage.css';
 import './AdminPages.css';
-import { authService } from '../services/api';
+import { authService, userService } from '../services/api'; // Added userService import
 
 function AdminUsersPage() {
   const [user, setUser] = useState(null);
@@ -197,7 +197,6 @@ function AdminUsersPage() {
                     <th>E-pasts</th>
                     <th>Loma</th>
                     <th>Statuss</th>
-                    // src/pages/AdminUsersPage.js (continued)
                     <th>Reģistrācijas datums</th>
                     <th>Darbības</th>
                   </tr>
