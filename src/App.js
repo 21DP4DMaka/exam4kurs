@@ -68,6 +68,7 @@ function App() {
   
   // Apstrādāt jautājuma atlasi
   const handleViewQuestion = (questionId) => {
+    console.log("Opening question with ID:", questionId); // Debug log
     setSelectedQuestionId(questionId);
     setCurrentPage('question-view');
   };
@@ -85,7 +86,13 @@ function App() {
         return <RegisterPage onRegister={handleRegister} />;
       case 'dashboard':
         // Ja lietotājs nav pieteicies, novirziet uz pieteikšanās lapu
-        return isLoggedIn ? <DashboardPage user={user} setCurrentPage={setCurrentPage} /> : <LoginPage onLogin={handleLogin} />;
+        return isLoggedIn ? 
+          <DashboardPage 
+            user={user} 
+            setCurrentPage={setCurrentPage} 
+            handleViewQuestion={handleViewQuestion} 
+          /> : 
+          <LoginPage onLogin={handleLogin} />;
       case 'professional-profile':
         // Pārbaudīt, vai lietotājs ir profesionālis vai administrators
         if (!isLoggedIn) {
@@ -94,7 +101,11 @@ function App() {
         if (user && (user.role === 'power' || user.role === 'admin')) {
           return <ProfessionalProfilePage />;
         }
-        return <DashboardPage user={user} setCurrentPage={setCurrentPage} />;
+        return <DashboardPage 
+          user={user} 
+          setCurrentPage={setCurrentPage} 
+          handleViewQuestion={handleViewQuestion} 
+        />;
       case 'admin-tag-applications':
         // Pārbaudīt, vai lietotājs ir administrators
         if (!isLoggedIn) {
@@ -103,16 +114,31 @@ function App() {
         if (user && user.role === 'admin') {
           return <AdminTagApplicationsPage />;
         }
-        return <DashboardPage user={user} setCurrentPage={setCurrentPage} />;
+        return <DashboardPage 
+          user={user} 
+          setCurrentPage={setCurrentPage} 
+          handleViewQuestion={handleViewQuestion}
+        />;
       case 'questions':
-        return <QuestionsPage setCurrentPage={setCurrentPage} handleViewQuestion={handleViewQuestion} />;
+        return <QuestionsPage 
+          setCurrentPage={setCurrentPage} 
+          handleViewQuestion={handleViewQuestion} 
+        />;
       case 'ask-question':
         return <AskQuestionPage user={user} setCurrentPage={setCurrentPage} />;
       case 'question-view':
+        console.log("Rendering question view for ID:", selectedQuestionId); // Debug log
         if (!selectedQuestionId) {
-          return <QuestionsPage setCurrentPage={setCurrentPage} handleViewQuestion={handleViewQuestion} />;
+          return <QuestionsPage 
+            setCurrentPage={setCurrentPage} 
+            handleViewQuestion={handleViewQuestion} 
+          />;
         }
-        return <QuestionViewPage questionId={selectedQuestionId} user={user} setCurrentPage={setCurrentPage} />;
+        return <QuestionViewPage 
+          questionId={selectedQuestionId} 
+          user={user} 
+          setCurrentPage={setCurrentPage} 
+        />;
       case 'home':
       default:
         return <HomePage />;

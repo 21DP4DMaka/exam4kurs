@@ -118,6 +118,24 @@ nav ul li a.active {
   background: #c0392b;
 }
 
+/* Pro Profils button in header */
+.btn-profils {
+  background-color: #27ae60;
+  color: white;
+  padding: 8px 15px;
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-right: 10px;
+  margin-left: 10px;
+}
+
+.btn-profils:hover {
+  background-color: #219653;
+}
+
 @media (max-width: 768px) {
   .app-header .container {
     flex-direction: column;
@@ -178,5 +196,10 @@ nav ul li a.active {
 
 .role-badge.power {
   background-color: #3498db;
+  color: white;
+}
+
+.role-badge.regular {
+  background-color: #6c757d;
   color: white;
 }

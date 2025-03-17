@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './DashboardPage.css';
 import { authService, questionService, notificationService } from '../services/api';
 
-function DashboardPage({ user: passedUser, setCurrentPage }) {
+function DashboardPage({ user: passedUser, setCurrentPage, handleViewQuestion }) {
   const [user, setUser] = useState(passedUser || null);
   const [stats, setStats] = useState({
     totalQuestions: 0,
@@ -100,6 +100,15 @@ function DashboardPage({ user: passedUser, setCurrentPage }) {
     setCurrentPage('professional-profile');
   };
   
+  // Funkcija, kas apstrādā klikšķu notikumu uz jautājumiem
+  const onQuestionClick = (questionId, e) => {
+    e.preventDefault();
+    console.log("Clicked on question:", questionId);
+    if (handleViewQuestion) {
+      handleViewQuestion(questionId);
+    }
+  };
+  
   // Formatē datumu
   const formatDate = (dateString) => {
     const options = { day: 'numeric', month: 'long', year: 'numeric' };
@@ -131,16 +140,6 @@ function DashboardPage({ user: passedUser, setCurrentPage }) {
               {user.role === 'admin' ? 'Administrators' : 
                user.role === 'power' ? 'Power lietotājs' : 'Lietotājs'}
             </p>
-            
-            {/* Pro Profils poga profesionāļiem */}
-            {user && user.role === 'power' && (
-              <button 
-                className="btn btn-profils"
-                onClick={handleNavigateToProProfile}
-              >
-                Pro Profils
-              </button>
-            )}
           </div>
           
           <nav className="dashboard-nav">
@@ -206,9 +205,15 @@ function DashboardPage({ user: passedUser, setCurrentPage }) {
                 ) : (
                   <ul className="questions-list">
                     {questions.map(question => (
-                      <li key={question.id} className="question-item">
+                      <li key={question.id} className="question-item" style={{ cursor: 'pointer' }} onClick={(e) => onQuestionClick(question.id, e)}>
                         <div className="question-header">
-                          <a href={`/questions/${question.id}`} className="question-title">{question.title}</a>
+                          <a 
+                            href={`/questions/${question.id}`} 
+                            className="question-title"
+                            onClick={(e) => onQuestionClick(question.id, e)}
+                          >
+                            {question.title}
+                          </a>
                           <span className={`question-status status-${question.status}`}>
                             {question.status === 'open' ? 'Atvērts' : 
                              question.status === 'answered' ? 'Atbildēts' : 

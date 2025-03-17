@@ -255,7 +255,12 @@ function QuestionsPage({ setCurrentPage, handleViewQuestion }) {
           <>
             <div className="questions-list">
               {questions.map(question => (
-                <div key={question.id} className="question-card">
+                <div 
+                  key={question.id} 
+                  className="question-card" 
+                  onClick={() => viewQuestion(question.id)}
+                  style={{ cursor: 'pointer' }}
+                >
                   <div className="question-stats">
                     <div className="stat">
                       <span className="stat-value">{question.answers_count || 0}</span>
@@ -276,6 +281,7 @@ function QuestionsPage({ setCurrentPage, handleViewQuestion }) {
                           e.preventDefault();
                           viewQuestion(question.id);
                         }}
+                        style={{ cursor: 'pointer' }}
                       >
                         {question.title}
                       </a>

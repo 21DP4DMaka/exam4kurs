@@ -46,6 +46,7 @@ function Header({ isLoggedIn, user, onLogout, setCurrentPage }) {
                   {user ? user.username : 'Mans profils'}
                   {user && user.role === 'admin' && <span className="role-badge admin">Admin</span>}
                   {user && user.role === 'power' && <span className="role-badge power">Pro</span>}
+                  {user && user.role === 'regular' && <span className="role-badge regular">Lietotājs</span>}
                 </a>
                 
                 {/* Admin button for tag applications - now moved here as requested */}
@@ -65,6 +66,16 @@ function Header({ isLoggedIn, user, onLogout, setCurrentPage }) {
                     onClick={(e) => handleNavigation('ask-question', e)}
                   >
                     Uzdot jautājumu
+                  </button>
+                )}
+                
+                {/* Pro Profils button for professional users */}
+                {isLoggedIn && user && user.role === 'power' && (
+                  <button 
+                    className="btn btn-profils"
+                    onClick={(e) => handleNavigation('professional-profile', e)}
+                  >
+                    Pro Profils
                   </button>
                 )}
                 
