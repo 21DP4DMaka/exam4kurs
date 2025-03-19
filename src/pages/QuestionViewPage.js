@@ -1,10 +1,9 @@
-// src/pages/QuestionViewPage.js
 import React, { useState, useEffect } from 'react';
 import { questionService, answerService, tagService } from '../services/api';
 import './QuestionViewPage.css';
 import ReportModal from '../components/ReportModal';
 
-function QuestionViewPage({ questionId, user, setCurrentPage }) {
+function QuestionViewPage({ questionId, user, setCurrentPage, handleViewUserProfile }) {
   const [question, setQuestion] = useState(null);
   const [answers, setAnswers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -282,7 +281,13 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
           
           <div className="question-meta">
             <div className="question-author">
-              <span className="author-name">{question.User ? question.User.username : 'Nezināms lietotājs'}</span>
+              <span 
+                className="author-name"
+                onClick={() => handleViewUserProfile && handleViewUserProfile(question.userId)}
+                style={{ cursor: 'pointer' }}
+              >
+                {question.User ? question.User.username : 'Nezināms lietotājs'}
+              </span>
               <span className="post-date">jautāja {formatDate(question.createdAt)}</span>
             </div>
             
@@ -345,7 +350,13 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
                   
                   <div className="answer-meta">
                     <div className="answer-author">
-                      <span className="author-name">{answer.User ? answer.User.username : 'Nezināms lietotājs'}</span>
+                      <span 
+                        className="author-name"
+                        onClick={() => handleViewUserProfile && handleViewUserProfile(answer.userId)}
+                        style={{ cursor: 'pointer' }}
+                      >
+                        {answer.User ? answer.User.username : 'Nezināms lietotājs'}
+                      </span>
                       {answer.User && answer.User.role === 'power' && (
                         <span className="author-badge professional">Pro</span>
                       )}

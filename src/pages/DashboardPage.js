@@ -108,6 +108,14 @@ function DashboardPage({ user: passedUser, setCurrentPage, handleViewQuestion })
       handleViewQuestion(questionId);
     }
   };
+
+  // Function to navigate to user profile
+  const handleViewUserProfile = (userId, e) => {
+    e.preventDefault();
+    e.stopPropagation(); // Prevent triggering the question click event
+    console.log("Viewing user profile:", userId);
+    setCurrentPage('user-profile', userId);
+  };
   
   // Formatē datumu
   const formatDate = (dateString) => {
@@ -132,7 +140,7 @@ function DashboardPage({ user: passedUser, setCurrentPage, handleViewQuestion })
             <div className="avatar">
               <img 
                 src={user.profileImage || "https://via.placeholder.com/80"} 
-                alt={`${user.username} profila attēls`} 
+                alt={`${user.username} profila attēls`}
               />
             </div>
             <h3>{user.username}</h3>
@@ -196,43 +204,37 @@ function DashboardPage({ user: passedUser, setCurrentPage, handleViewQuestion })
           <div className="dashboard-grid">
             <div className="dashboard-card recent-questions">
               <div className="card-header">
-                <h3>Jaunākie jautājumi</h3>
-                <a href="#" className="view-all">Skatīt visus</a>
+                <h3>Lietotāju atsauksmes</h3>
+                <a href="#" className="view-all">Skatīt visas</a>
               </div>
               <div className="card-content">
-                {questions.length === 0 ? (
-                  <p className="empty-state">Nav atrasti jautājumi.</p>
-                ) : (
-                  <ul className="questions-list">
-                    {questions.map(question => (
-                      <li key={question.id} className="question-item" style={{ cursor: 'pointer' }} onClick={(e) => onQuestionClick(question.id, e)}>
-                        <div className="question-header">
+                <div className="reviews-container">
+                  <p className="text-center">Šeit jūs varat apskatīt citu lietotāju atsauksmes un vērtējumus.</p>
+                  <p className="text-center">Lai atstātu vai apskatītu atsauksmes, apmeklējiet lietotāja profilu, klikšķinot uz lietotājvārda jautājumu sadaļā.</p>
+                  
+                  <div className="view-popular-users">
+                    <h4>Populārākie lietotāji</h4>
+                    <ul className="popular-users-list">
+                      {questions.slice(0, 3).map(question => question.User && (
+                        <li key={question.User.id} className="popular-user-item">
                           <a 
-                            href={`/questions/${question.id}`} 
-                            className="question-title"
-                            onClick={(e) => onQuestionClick(question.id, e)}
+                            href="#" 
+                            onClick={(e) => handleViewUserProfile(question.User.id, e)}
+                            className="user-link"
                           >
-                            {question.title}
+                            <span className="user-avatar">
+                              <img 
+                                src={question.User.profileImage || "https://via.placeholder.com/30"} 
+                                alt={`${question.User.username} profila attēls`}
+                              />
+                            </span>
+                            <span className="user-name">{question.User.username}</span>
                           </a>
-                          <span className={`question-status status-${question.status}`}>
-                            {question.status === 'open' ? 'Atvērts' : 
-                             question.status === 'answered' ? 'Atbildēts' : 
-                             'Slēgts'}
-                          </span>
-                        </div>
-                        <div className="question-meta">
-                          <span className="question-date">{formatDate(question.createdAt)}</span>
-                          <span className="question-answers">{question.answers_count} atbildes</span>
-                        </div>
-                        <div className="question-tags">
-                          {question.Tags && question.Tags.map((tag) => (
-                            <span key={tag.id} className="tag">{tag.name}</span>
-                          ))}
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
               </div>
             </div>
             
@@ -269,6 +271,57 @@ function DashboardPage({ user: passedUser, setCurrentPage, handleViewQuestion })
                   </ul>
                 )}
               </div>
+            </div>
+          </div>
+          
+          <div className="dashboard-card latest-questions">
+            <div className="card-header">
+              <h3>Jaunākie jautājumi</h3>
+              <a href="#" className="view-all" onClick={(e) => {
+                e.preventDefault();
+                setCurrentPage('questions');
+              }}>Skatīt visus</a>
+            </div>
+            <div className="card-content">
+              {questions.length === 0 ? (
+                <p className="empty-state">Nav atrasti jautājumi.</p>
+              ) : (
+                <ul className="questions-list">
+                  {questions.map(question => (
+                    <li key={question.id} className="question-item" style={{ cursor: 'pointer' }} onClick={(e) => onQuestionClick(question.id, e)}>
+                      <div className="question-header">
+                        <a 
+                          href={`/questions/${question.id}`} 
+                          className="question-title"
+                          onClick={(e) => onQuestionClick(question.id, e)}
+                        >
+                          {question.title}
+                        </a>
+                        <span className={`question-status status-${question.status}`}>
+                          {question.status === 'open' ? 'Atvērts' : 
+                           question.status === 'answered' ? 'Atbildēts' : 
+                           'Slēgts'}
+                        </span>
+                      </div>
+                      <div className="question-meta">
+                        <span 
+                          className="question-author" 
+                          onClick={(e) => handleViewUserProfile(question.User.id, e)}
+                        >
+                          {question.User ? question.User.username : 'Nezināms lietotājs'}
+                        </span>
+                        <span className="question-date">{formatDate(question.createdAt)}</span>
+                        <span className="question-answers">{question.answers_count} atbildes</span>
+                      </div>
+                      <div className="question-tags">
+                        {question.Tags && question.Tags.map((tag) => (
+                          <span key={tag.id} className="tag">{tag.name}</span>
+                        ))}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           </div>
         </div>

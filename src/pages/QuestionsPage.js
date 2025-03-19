@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { questionService, tagService } from '../services/api';
 import './QuestionsPage.css';
 
-function QuestionsPage({ setCurrentPage, handleViewQuestion }) {
+function QuestionsPage({ setCurrentPage, handleViewQuestion, handleViewUserProfile }) {
   const [questions, setQuestions] = useState([]);
   const [availableTags, setAvailableTags] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -301,7 +301,16 @@ function QuestionsPage({ setCurrentPage, handleViewQuestion }) {
                       </div>
                       
                       <div className="question-info">
-                        <span className="question-author">
+                        <span 
+                          className="question-author"
+                          onClick={(e) => {
+                            e.stopPropagation(); // Prevent triggering the parent card click
+                            if (handleViewUserProfile && question.User) {
+                              handleViewUserProfile(question.User.id);
+                            }
+                          }}
+                          style={{ cursor: 'pointer' }}
+                        >
                           {question.User ? question.User.username : 'Nezināms lietotājs'}
                         </span>
                         <span className="question-date">

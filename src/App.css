@@ -46,11 +46,22 @@ html, body, #root, .App {
   min-height: 100vh;
 }
 
+
 main, .dashboard-page {
+  
   flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
 }
 
 footer {
   flex-shrink: 0;
   margin-top: auto;
+  position: relative; /* Ensure footer stays in document flow */
+  z-index: 10; /* Prevent overlap with page content */
+}
+
+html, body, #root, .App {
+  height: 100%;
+  margin: 0;
 }

@@ -454,3 +454,105 @@ footer {
     align-self: flex-start;
   }
 }
+
+/* Add these styles to DashboardPage.css */
+
+.reviews-container {
+  padding: 20px;
+}
+
+.text-center {
+  text-align: center;
+  margin-bottom: 15px;
+  color: #4a5568;
+}
+
+.view-popular-users {
+  margin-top: 30px;
+}
+
+.view-popular-users h4 {
+  font-size: 1.1rem;
+  color: #2c3e50;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.popular-users-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.popular-user-item {
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.popular-user-item:hover {
+  background-color: #e9ecef;
+}
+
+.user-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: #2c3e50;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: 15px;
+  flex-shrink: 0;
+}
+
+.user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.user-name {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: #3498db;
+  transition: color 0.2s;
+}
+
+.user-name:hover {
+  color: #2980b9;
+  text-decoration: underline;
+}
+
+/* Latest questions card */
+.latest-questions {
+  margin-top: 30px;
+}
+
+.question-author {
+  margin-right: 10px;
+  font-weight: 600;
+  color: #3498db;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.question-author:hover {
+  text-decoration: underline;
+  color: #2980b9;
+}
+
+.question-author:after {
+  content: "•";
+  margin-left: 10px;
+  opacity: 0.5;
+  text-decoration: none;
+  color: #718096;
+}

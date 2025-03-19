@@ -34,15 +34,16 @@ export const authService = {
 
 // Сервисы вопросов
 export const questionService = {
-  // Existing functions
+  // Existing functions...
   getQuestions: (params) => apiClient.get('/questions', { params }),
   getQuestionById: (id) => apiClient.get(`/questions/${id}`),
   createQuestion: (questionData) => apiClient.post('/questions', questionData),
   updateQuestion: (id, questionData) => apiClient.put(`/questions/${id}`, questionData),
-  
-  // New admin functions
   deleteQuestion: (id) => apiClient.delete(`/questions/${id}`),
-  reportQuestion: (id, data) => apiClient.post(`/questions/${id}/report`, data)
+  reportQuestion: (id, data) => apiClient.post(`/questions/${id}/report`, data),
+  
+  // New function to get questions by user ID
+  getUserQuestions: (userId) => apiClient.get(`/users/${userId}/questions`)
 };
 
 // Сервисы ответов
@@ -88,18 +89,18 @@ export const tagService = {
 
 // User management services
 export const userService = {
-  // Get all users (admin)
+  // Existing functions...
   getUsers: (params) => apiClient.get('/users/admin/users', { params }),
-  
-  // Ban a user (admin)
   banUser: (userId, data) => apiClient.post(`/users/${userId}/ban`, data),
-  
-  // Unban a user (admin)
   unbanUser: (userId) => apiClient.post(`/users/${userId}/unban`),
-  
-  // Delete a user (admin)
   deleteUser: (userId) => apiClient.delete(`/users/${userId}`),
+  reportUser: (userId, data) => apiClient.post(`/users/${userId}/report`, data),
   
-  // Report a user (any authenticated user)
-  reportUser: (userId, data) => apiClient.post(`/users/${userId}/report`, data)
+  // New functions for user profiles and reviews
+  getUserById: (userId) => apiClient.get(`/users/${userId}`),
+  getUserReviews: (userId) => apiClient.get(`/users/${userId}/reviews`),
+  createUserReview: (userId, reviewData) => apiClient.post(`/users/${userId}/reviews`, reviewData),
+  updateUserProfile: (profileData) => apiClient.put('/users/profile', profileData)
 };
+
+// Add this function to questionService

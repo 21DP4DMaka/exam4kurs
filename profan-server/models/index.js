@@ -6,6 +6,7 @@ const Question = require('./Question');
 const Answer = require('./Answer');
 const Notification = require('./Notification');
 const TagApplication = require('./TagApplication');
+const Review = require('./Review'); // Add the Review model
 
 // Definēt attiecības starp modeļiem
 User.hasOne(ProfessionalProfile, { foreignKey: 'userId' });
@@ -44,6 +45,25 @@ TagApplication.belongsTo(Tag, { foreignKey: 'tagId' });
 User.hasMany(TagApplication, { foreignKey: 'reviewedBy', as: 'ReviewedApplications' });
 TagApplication.belongsTo(User, { foreignKey: 'reviewedBy', as: 'Reviewer' });
 
+// Reviews relationships
+User.hasMany(Review, { 
+  foreignKey: 'userId',
+  as: 'ReceivedReviews'
+});
+Review.belongsTo(User, { 
+  foreignKey: 'userId',
+  as: 'ReviewedUser' 
+});
+
+User.hasMany(Review, { 
+  foreignKey: 'reviewerId',
+  as: 'GivenReviews'
+});
+Review.belongsTo(User, { 
+  foreignKey: 'reviewerId',
+  as: 'Reviewer' 
+});
+
 // Eksportēt modeļus
 module.exports = {
   sequelize,
@@ -53,5 +73,6 @@ module.exports = {
   Question,
   Answer,
   Notification,
-  TagApplication
+  TagApplication,
+  Review // Add Review to exports
 };

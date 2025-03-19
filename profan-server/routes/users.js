@@ -12,7 +12,14 @@ router.get('/:id', async (req, res) => {
       include: [
         {
           model: ProfessionalProfile,
-          required: false
+          required: false,
+          include: [
+            {
+              model: Tag,
+              through: { attributes: [] },
+              attributes: ['id', 'name', 'description']
+            }
+          ]
         }
       ]
     });
@@ -27,6 +34,9 @@ router.get('/:id', async (req, res) => {
     res.status(500).json({ message: 'Servera kļūda iegūstot lietotāju' });
   }
 });
+
+// Get user's questions
+router.get('/:id/questions', userController.getUserQuestions);
 
 // Получить профессиональные теги пользователя
 router.get('/:id/professional-tags', async (req, res) => {

@@ -12,14 +12,16 @@ import AdminUsersPage from './pages/AdminUsersPage';
 import QuestionsPage from './pages/QuestionsPage';
 import AskQuestionPage from './pages/AskQuestionPage';
 import QuestionViewPage from './pages/QuestionViewPage';
+import UserProfilePage from './pages/UserProfilePage'; // Import the new component
 import { authService } from './services/api';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
-  const [currentPage, setCurrentPage] = useState('home'); // 'home', 'login', 'register', 'dashboard', 'professional-profile', 'admin-tag-applications', 'admin-users', 'questions', 'ask-question', 'question-view'
+  const [currentPage, setCurrentPage] = useState('home'); // 'home', 'login', 'register', 'dashboard', 'professional-profile', 'admin-tag-applications', 'admin-users', 'questions', 'ask-question', 'question-view', 'user-profile'
   const [isLoading, setIsLoading] = useState(true);
   const [selectedQuestionId, setSelectedQuestionId] = useState(null);
+  const [selectedUserId, setSelectedUserId] = useState(null); // Add state for selected user ID
   
   // Pārbaudīt, vai lietotājs jau ir pieteicies (pārbaudot tokenu)
   useEffect(() => {
@@ -74,6 +76,23 @@ function App() {
     setCurrentPage('question-view');
   };
   
+  // Add a function to handle user profile navigation
+  const handleViewUserProfile = (userId) => {
+    console.log("Opening user profile with ID:", userId); // Debug log
+    setSelectedUserId(userId);
+    setCurrentPage('user-profile');
+  };
+  
+  // Custom setCurrentPage function to handle additional parameters
+  const setCurPage = (page, param = null) => {
+    if (page === 'question-view' && param) {
+      setSelectedQuestionId(param);
+    } else if (page === 'user-profile' && param) {
+      setSelectedUserId(param);
+    }
+    setCurrentPage(page);
+  };
+  
   // Pagaidām vienkāršs maršrutētājs - vēlāk aizstāt ar React Router
   const renderPage = () => {
     if (isLoading) {
@@ -90,7 +109,7 @@ function App() {
         return isLoggedIn ? 
           <DashboardPage 
             user={user} 
-            setCurrentPage={setCurrentPage} 
+            setCurrentPage={setCurPage} 
             handleViewQuestion={handleViewQuestion} 
           /> : 
           <LoginPage onLogin={handleLogin} />;
@@ -104,7 +123,7 @@ function App() {
         }
         return <DashboardPage 
           user={user} 
-          setCurrentPage={setCurrentPage} 
+          setCurrentPage={setCurPage} 
           handleViewQuestion={handleViewQuestion} 
         />;
       case 'admin-tag-applications':
@@ -117,7 +136,7 @@ function App() {
         }
         return <DashboardPage 
           user={user} 
-          setCurrentPage={setCurrentPage} 
+          setCurrentPage={setCurPage} 
           handleViewQuestion={handleViewQuestion}
         />;
       case 'admin-users':
@@ -130,28 +149,42 @@ function App() {
         }
         return <DashboardPage 
           user={user} 
-          setCurrentPage={setCurrentPage} 
+          setCurrentPage={setCurPage} 
           handleViewQuestion={handleViewQuestion}
         />;
       case 'questions':
         return <QuestionsPage 
-          setCurrentPage={setCurrentPage} 
+          setCurrentPage={setCurPage} 
           handleViewQuestion={handleViewQuestion} 
         />;
       case 'ask-question':
-        return <AskQuestionPage user={user} setCurrentPage={setCurrentPage} />;
+        return <AskQuestionPage user={user} setCurrentPage={setCurPage} />;
       case 'question-view':
         console.log("Rendering question view for ID:", selectedQuestionId); // Debug log
         if (!selectedQuestionId) {
           return <QuestionsPage 
-            setCurrentPage={setCurrentPage} 
+            setCurrentPage={setCurPage} 
             handleViewQuestion={handleViewQuestion} 
           />;
         }
         return <QuestionViewPage 
           questionId={selectedQuestionId} 
           user={user} 
-          setCurrentPage={setCurrentPage} 
+          setCurrentPage={setCurPage} 
+        />;
+      case 'user-profile':
+        console.log("Rendering user profile for ID:", selectedUserId); // Debug log
+        if (!selectedUserId) {
+          return <DashboardPage 
+            user={user} 
+            setCurrentPage={setCurPage} 
+            handleViewQuestion={handleViewQuestion} 
+          />;
+        }
+        return <UserProfilePage 
+          profileUserId={selectedUserId} 
+          currentUser={user} 
+          setCurrentPage={setCurPage} 
         />;
       case 'home':
       default:
@@ -165,7 +198,7 @@ function App() {
         isLoggedIn={isLoggedIn}
         user={user}
         onLogout={handleLogout}
-        setCurrentPage={setCurrentPage}
+        setCurrentPage={setCurPage}
       />
       {renderPage()}
       <Footer />

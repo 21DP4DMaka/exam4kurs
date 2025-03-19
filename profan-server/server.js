@@ -12,6 +12,7 @@ const notificationRoutes = require('./routes/notifications');
 const tagRoutes = require('./routes/tags');
 const userRoutes = require('./routes/users');
 const tagApplicationRoutes = require('./routes/tagApplication');
+const reviewRoutes = require('./routes/reviews'); // Import the new reviews routes
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -31,6 +32,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/tags', tagRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/tag-applications', tagApplicationRoutes);
+app.use('/api/reviews', reviewRoutes); // Set up the reviews routes
 
 // Testa maršruts, lai pārbaudītu, vai serveris darbojas
 app.get('/', (req, res) => {
