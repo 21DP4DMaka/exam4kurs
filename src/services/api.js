@@ -98,8 +98,8 @@ export const userService = {
   
   // New functions for user profiles and reviews
   getUserById: (userId) => apiClient.get(`/users/${userId}`),
-  getUserReviews: (userId) => apiClient.get(`/users/${userId}/reviews`),
-  createUserReview: (userId, reviewData) => apiClient.post(`/users/${userId}/reviews`, reviewData),
+  getUserReviews: (userId) => apiClient.get(`/reviews/users/${userId}/reviews`),
+  createUserReview: (userId, reviewData) => apiClient.post(`/reviews/users/${userId}/reviews`, reviewData),
   updateUserProfile: (profileData) => apiClient.put('/users/profile', profileData)
 };
 

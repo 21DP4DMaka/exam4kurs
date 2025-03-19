@@ -1,5 +1,4 @@
-// profan-server/controllers/userController.js
-const { User, Question, Answer, ProfessionalProfile, Notification, sequelize } = require('../models');
+const { User, Question, Answer, ProfessionalProfile, Notification, Tag, sequelize } = require('../models');
 const { Op } = require('sequelize');
 
 // Get all users with pagination (Admin only)
@@ -255,7 +254,7 @@ exports.getUserQuestions = async (req, res) => {
           attributes: ['id', 'username', 'profileImage']
         },
         {
-          model: Tag,
+          model: Tag, 
           through: { attributes: [] },
           attributes: ['id', 'name']
         }

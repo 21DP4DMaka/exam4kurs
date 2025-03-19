@@ -2,40 +2,41 @@ const { Review, User, sequelize } = require('../models');
 const { Op } = require('sequelize');
 
 // Get reviews for a user
+
 exports.getUserReviews = async (req, res) => {
-  try {
-    const userId = req.params.userId;
-    
-    // Find all reviews for the user
-    const reviews = await Review.findAll({
-      where: { userId },
-      include: [
-        {
-          model: User,
-          as: 'Reviewer',
-          attributes: ['id', 'username', 'profileImage', 'role']
-        }
-      ],
-      order: [['createdAt', 'DESC']]
-    });
-    
-    // Calculate average rating
-    let averageRating = 0;
-    if (reviews.length > 0) {
-      const sum = reviews.reduce((total, review) => total + review.rating, 0);
-      averageRating = sum / reviews.length;
+    try {
+      const userId = req.params.userId;
+      
+      // Find all reviews for the user
+      const reviews = await Review.findAll({
+        where: { userId },
+        include: [
+          {
+            model: User,
+            as: 'Reviewer',  // Note the 'Reviewer' alias with capital R
+            attributes: ['id', 'username', 'profileImage', 'role']
+          }
+        ],
+        order: [['createdAt', 'DESC']]
+      });
+      
+      // Calculate average rating
+      let averageRating = 0;
+      if (reviews.length > 0) {
+        const sum = reviews.reduce((total, review) => total + review.rating, 0);
+        averageRating = sum / reviews.length;
+      }
+      
+      res.json({
+        reviews,        // This will contain reviews with Review.Reviewer property
+        averageRating,
+        totalReviews: reviews.length
+      });
+    } catch (error) {
+      console.error('Error fetching user reviews:', error);
+      res.status(500).json({ message: 'Servera kļūda iegūstot atsauksmes' });
     }
-    
-    res.json({
-      reviews,
-      averageRating,
-      totalReviews: reviews.length
-    });
-  } catch (error) {
-    console.error('Error fetching user reviews:', error);
-    res.status(500).json({ message: 'Servera kļūda iegūstot atsauksmes' });
-  }
-};
+  };
 
 // Create a new review
 exports.createReview = async (req, res) => {

@@ -294,27 +294,30 @@ function UserProfilePage({ profileUserId, currentUser, setCurrentPage }) {
                     <div className="reviews-container">
                       {reviews.map((review) => (
                         <div key={review.id} className="review-item">
-                          <div className="review-header">
+                            <div className="review-header">
                             <div className="reviewer-info">
-                              <span className="reviewer-name">{review.reviewer.username}</span>
-                              <span className="review-date">{formatDate(review.createdAt)}</span>
+                                {/* Add null check for reviewer property */}
+                                <span className="reviewer-name">
+                                {review.Reviewer ? review.Reviewer.username : 'Nezināms lietotājs'}
+                                </span>
+                                <span className="review-date">{formatDate(review.createdAt)}</span>
                             </div>
                             <div className="review-rating">
-                              {[1, 2, 3, 4, 5].map((star) => (
+                                {[1, 2, 3, 4, 5].map((star) => (
                                 <span 
-                                  key={star} 
-                                  className={`star ${star <= review.rating ? 'filled' : ''}`}
+                                    key={star} 
+                                    className={`star ${star <= review.rating ? 'filled' : ''}`}
                                 >
-                                  ★
+                                    ★
                                 </span>
-                              ))}
+                                ))}
                             </div>
-                          </div>
-                          <div className="review-content">
+                            </div>
+                            <div className="review-content">
                             {review.comment}
-                          </div>
+                            </div>
                         </div>
-                      ))}
+                        ))}
                     </div>
                   )}
                 </div>

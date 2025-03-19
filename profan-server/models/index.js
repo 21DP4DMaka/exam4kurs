@@ -72,7 +72,7 @@ module.exports = {
   Tag,
   Question,
   Answer,
-  Notification,
+  Notification, 
   TagApplication,
   Review // Add Review to exports
 };
