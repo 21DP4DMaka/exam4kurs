@@ -317,3 +317,49 @@ exports.getUserById = async (req, res) => {
     res.status(500).json({ message: 'Servera kļūda iegūstot lietotāju' });
   }
 };
+
+// Add this to userController.js in profan-server/controllers/userController.js
+
+exports.getUserAnswers = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+    
+    const { Answer, Question, User, sequelize } = require('../models');
+    
+    const { count, rows } = await Answer.findAndCountAll({
+      where: { userId },
+      include: [
+        {
+          model: Question,
+          attributes: ['id', 'title', 'status']
+        },
+        {
+          model: User,
+          attributes: ['id', 'username', 'profileImage']
+        }
+      ],
+      order: [
+        ['isAccepted', 'DESC'],
+        ['createdAt', 'DESC']
+      ],
+      limit,
+      offset,
+      distinct: true
+    });
+    
+    res.json({
+      answers: rows,
+      totalItems: count,
+      totalPages: Math.ceil(count / limit),
+      currentPage: page
+    });
+  } catch (error) {
+    console.error('Error fetching user answers:', error);
+    res.status(500).json({ message: 'Servera kļūda iegūstot lietotāja atbildes' });
+  }
+};
+
+// Then add this to the routes/users.js file:

@@ -261,6 +261,103 @@
     color: inherit;
   }
   
+  /* Stats styling */
+  .user-stats .card-content {
+    padding: 15px;
+  }
+  
+  .stat-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #edf2f7;
+  }
+  
+  .stat-item:last-child {
+    border-bottom: none;
+  }
+  
+  .stat-label {
+    color: #4a5568;
+    font-weight: 500;
+  }
+  
+  .stat-value {
+    color: #2c3e50;
+    font-weight: 600;
+  }
+  
+  /* Answer items styling */
+  .answers-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .answer-item {
+    padding: 15px;
+    border-bottom: 1px solid #edf2f7;
+    transition: background-color 0.2s;
+  }
+  
+  .answer-item:last-child {
+    border-bottom: none;
+  }
+  
+  .answer-item:hover {
+    background-color: #f8f9fa;
+  }
+  
+  .answer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+  }
+  
+  .answer-header .question-title {
+    color: #2c3e50;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+  
+  .answer-header .question-title:hover {
+    color: #3498db;
+  }
+  
+  .answer-accepted {
+    background-color: #d4edda;
+    color: #155724;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  .answer-meta {
+    display: flex;
+    justify-content: space-between;
+    color: #718096;
+    font-size: 0.85rem;
+  }
+  
+  /* Review button styling in QuestionViewPage */
+  .answer-actions {
+    display: flex;
+    gap: 10px;
+  }
+  
+  /* Styles for profile email */
+  .profile-email {
+    margin-bottom: 10px;
+    color: #4a5568;
+    font-size: 0.95rem;
+  }
+  
   /* Responsive adjustments */
   @media (max-width: 992px) {
     .profile-content {
@@ -292,5 +389,19 @@
     .profile-meta {
       flex-direction: column;
       gap: 10px;
+    }
+    
+    .answer-actions {
+      flex-direction: column;
+      gap: 5px;
+    }
+    
+    .answer-header {
+      flex-direction: column;
+      gap: 5px;
+    }
+    
+    .answer-accepted {
+      align-self: flex-start;
     }
   }

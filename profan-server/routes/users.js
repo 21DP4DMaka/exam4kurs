@@ -131,5 +131,6 @@ router.delete('/:id', authenticateToken, isAdmin, userController.deleteUser);
 router.post('/:id/report', authenticateToken, userController.reportUser);
 
 router.get('/:id', userController.getUserById);
+router.get('/:id/answers', userController.getUserAnswers);
 
 module.exports = router;

@@ -34,7 +34,6 @@ export const authService = {
 
 // Сервисы вопросов
 export const questionService = {
-  // Existing functions...
   getQuestions: (params) => apiClient.get('/questions', { params }),
   getQuestionById: (id) => apiClient.get(`/questions/${id}`),
   createQuestion: (questionData) => apiClient.post('/questions', questionData),
@@ -42,7 +41,7 @@ export const questionService = {
   deleteQuestion: (id) => apiClient.delete(`/questions/${id}`),
   reportQuestion: (id, data) => apiClient.post(`/questions/${id}/report`, data),
   
-  // New function to get questions by user ID
+  // Function to get questions by user ID
   getUserQuestions: (userId) => apiClient.get(`/users/${userId}/questions`)
 };
 
@@ -89,18 +88,17 @@ export const tagService = {
 
 // User management services
 export const userService = {
-  // Existing functions...
   getUsers: (params) => apiClient.get('/users/admin/users', { params }),
   banUser: (userId, data) => apiClient.post(`/users/${userId}/ban`, data),
   unbanUser: (userId) => apiClient.post(`/users/${userId}/unban`),
   deleteUser: (userId) => apiClient.delete(`/users/${userId}`),
   reportUser: (userId, data) => apiClient.post(`/users/${userId}/report`, data),
   
-  // New functions for user profiles and reviews
+  // Functions for user profiles and reviews
   getUserById: (userId) => apiClient.get(`/users/${userId}`),
+  getUserQuestions: (userId) => apiClient.get(`/users/${userId}/questions`),
+  getUserAnswers: (userId) => apiClient.get(`/users/${userId}/answers`),
   getUserReviews: (userId) => apiClient.get(`/reviews/users/${userId}/reviews`),
   createUserReview: (userId, reviewData) => apiClient.post(`/reviews/users/${userId}/reviews`, reviewData),
   updateUserProfile: (profileData) => apiClient.put('/users/profile', profileData)
 };
-
-// Add this function to questionService

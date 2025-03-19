@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './DashboardPage.css';
-import { authService, questionService, notificationService } from '../services/api';
+import { authService, questionService, notificationService, userService } from '../services/api';
 
 function DashboardPage({ user: passedUser, setCurrentPage, handleViewQuestion }) {
   const [user, setUser] = useState(passedUser || null);
@@ -13,6 +13,7 @@ function DashboardPage({ user: passedUser, setCurrentPage, handleViewQuestion })
   
   const [questions, setQuestions] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  const [reviews, setReviews] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   
@@ -33,7 +34,7 @@ function DashboardPage({ user: passedUser, setCurrentPage, handleViewQuestion })
     fetchUserData();
   }, [user]);
   
-  // Ielādēt jautājumus un paziņojumus, kad lietotājs ir ielādēts
+  // Ielādēt jautājumus, paziņojumus un atsauksmes, kad lietotājs ir ielādēts
   useEffect(() => {
     if (!user) return;
     
@@ -56,6 +57,16 @@ function DashboardPage({ user: passedUser, setCurrentPage, handleViewQuestion })
         });
         
         setNotifications(notificationsResponse.data.notifications);
+        
+        // Ielādēt atsauksmes, ja lietotājs ir profesionālis
+        if (user.role === 'power' || user.role === 'admin') {
+          try {
+            const reviewsResponse = await userService.getUserReviews(user.id);
+            setReviews(reviewsResponse.data.reviews || []);
+          } catch (error) {
+            console.error('Kļūda ielādējot atsauksmes:', error);
+          }
+        }
         
         // Uzstādīt statistiku
         setStats({
@@ -208,33 +219,48 @@ function DashboardPage({ user: passedUser, setCurrentPage, handleViewQuestion })
                 <a href="#" className="view-all">Skatīt visas</a>
               </div>
               <div className="card-content">
-                <div className="reviews-container">
-                  <p className="text-center">Šeit jūs varat apskatīt citu lietotāju atsauksmes un vērtējumus.</p>
-                  <p className="text-center">Lai atstātu vai apskatītu atsauksmes, apmeklējiet lietotāja profilu, klikšķinot uz lietotājvārda jautājumu sadaļā.</p>
-                  
-                  <div className="view-popular-users">
-                    <h4>Populārākie lietotāji</h4>
-                    <ul className="popular-users-list">
-                      {questions.slice(0, 3).map(question => question.User && (
-                        <li key={question.User.id} className="popular-user-item">
-                          <a 
-                            href="#" 
-                            onClick={(e) => handleViewUserProfile(question.User.id, e)}
-                            className="user-link"
-                          >
-                            <span className="user-avatar">
-                              <img 
-                                src={question.User.profileImage || "https://via.placeholder.com/30"} 
-                                alt={`${question.User.username} profila attēls`}
-                              />
-                            </span>
-                            <span className="user-name">{question.User.username}</span>
-                          </a>
-                        </li>
+                {(user.role === 'power' || user.role === 'admin') ? (
+                  reviews && reviews.length > 0 ? (
+                    <div className="reviews-container">
+                      {reviews.map((review) => (
+                        <div key={review.id} className="review-item">
+                          <div className="review-header">
+                            <div className="reviewer-info">
+                              <span className="reviewer-name">
+                                {review.Reviewer ? review.Reviewer.username : 'Nezināms lietotājs'}
+                              </span>
+                              <span className="review-date">{formatDate(review.createdAt)}</span>
+                            </div>
+                            <div className="review-rating">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <span 
+                                  key={star} 
+                                  style={{ 
+                                    color: star <= review.rating ? '#f59e0b' : '#e2e8f0',
+                                    fontSize: '1.2rem'
+                                  }}
+                                >
+                                  {star <= review.rating ? '★' : '☆'}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="review-content">
+                            {review.comment}
+                          </div>
+                        </div>
                       ))}
-                    </ul>
+                    </div>
+                  ) : (
+                    <div className="reviews-container">
+                      <p className="empty-state">Jums vēl nav atsauksmju.</p>
+                    </div>
+                  )
+                ) : (
+                  <div className="reviews-container">
+                    <p className="empty-state">Atsauksmes pieejamas tikai profesionāļiem.</p>
                   </div>
-                </div>
+                )}
               </div>
             </div>
             

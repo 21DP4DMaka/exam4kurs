@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { questionService, tagService } from '../services/api';
 import './QuestionsPage.css';
+import { truncateText } from '../utils/textUtils';
 
 function QuestionsPage({ setCurrentPage, handleViewQuestion, handleViewUserProfile }) {
   const [questions, setQuestions] = useState([]);
@@ -288,11 +289,8 @@ function QuestionsPage({ setCurrentPage, handleViewQuestion, handleViewUserProfi
                     </h3>
                     
                     <div className="question-excerpt">
-                      {question.content.length > 200 
-                        ? `${question.content.substring(0, 200)}...` 
-                        : question.content}
+                      {truncateText(question.content, 50)}
                     </div>
-                    
                     <div className="question-meta">
                       <div className="question-tags">
                         {question.Tags && question.Tags.map(tag => (

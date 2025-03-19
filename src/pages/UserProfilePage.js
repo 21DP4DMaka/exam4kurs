@@ -2,17 +2,16 @@ import React, { useState, useEffect } from 'react';
 import './DashboardPage.css';
 import './UserProfilePage.css';
 import { userService, questionService } from '../services/api';
+import { truncateText } from '../utils/textUtils';
 
 function UserProfilePage({ profileUserId, currentUser, setCurrentPage }) {
   const [profileUser, setProfileUser] = useState(null);
   const [userQuestions, setUserQuestions] = useState([]);
+  const [userAnswers, setUserAnswers] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [averageRating, setAverageRating] = useState(0);
-  const [newReview, setNewReview] = useState({ rating: 0, comment: '' });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -26,6 +25,16 @@ function UserProfilePage({ profileUserId, currentUser, setCurrentPage }) {
         // Fetch user's questions
         const questionsResponse = await questionService.getUserQuestions(profileUserId);
         setUserQuestions(questionsResponse.data.questions || []);
+        
+        // Fetch user's answers if they are a professional
+        if (userResponse.data.role === 'power' || userResponse.data.role === 'admin') {
+          try {
+            const answersResponse = await userService.getUserAnswers(profileUserId);
+            setUserAnswers(answersResponse.data.answers || []);
+          } catch (error) {
+            console.error('Error fetching user answers:', error);
+          }
+        }
         
         // Fetch user reviews
         const reviewsResponse = await userService.getUserReviews(profileUserId);
@@ -45,73 +54,8 @@ function UserProfilePage({ profileUserId, currentUser, setCurrentPage }) {
     }
   }, [profileUserId]);
 
-  const handleRatingChange = (rating) => {
-    setNewReview({...newReview, rating});
-  };
-
   const formatEmail = (email) => {
     return email || 'Nav norādīts e-pasts';
-  };
-  
-  
-  const handleCommentChange = (e) => {
-    setNewReview({...newReview, comment: e.target.value});
-  };
-  
-  const handleSubmitReview = async (e) => {
-    e.preventDefault();
-    
-    if (!currentUser) {
-      setError('You must be logged in to leave a review');
-      return;
-    }
-    
-    if (newReview.rating === 0) {
-      setError('Please select a rating');
-      return;
-    }
-    
-    if (!newReview.comment.trim()) {
-      setError('Please write a comment for your review');
-      return;
-    }
-    
-    setIsSubmitting(true);
-    setError(null);
-    
-    try {
-      const response = await userService.createUserReview(profileUserId, {
-        rating: newReview.rating,
-        comment: newReview.comment
-      });
-      
-      // Add the new review to the list
-      const newReviewData = response.data.review;
-      setReviews([newReviewData, ...reviews]);
-      
-      // Update average rating
-      setAverageRating(response.data.averageRating);
-      
-      // Reset the form
-      setNewReview({ rating: 0, comment: '' });
-      
-      setSuccess('Review submitted successfully!');
-      
-      // Hide success message after 3 seconds
-      setTimeout(() => {
-        setSuccess(null);
-      }, 3000);
-    } catch (error) {
-      console.error('Error submitting review:', error);
-      
-      if (error.response && error.response.data && error.response.data.message) {
-        setError(error.response.data.message);
-      } else {
-        setError('Failed to submit review. Please try again.');
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
   };
   
   // Format date
@@ -177,12 +121,12 @@ function UserProfilePage({ profileUserId, currentUser, setCurrentPage }) {
           </div>
           
           <div className="profile-info">
-                <h2>{profileUser.username}</h2>
-                {profileUser.email && (
-                    <div className="profile-email">
-                    <span>{formatEmail(profileUser.email)}</span>
-                    </div>
-                )}
+            <h2>{profileUser.username}</h2>
+            {profileUser.email && (
+                <div className="profile-email">
+                <span>{formatEmail(profileUser.email)}</span>
+                </div>
+            )}
             <div className="profile-meta">
               <span className="profile-role">
                 {profileUser.role === 'admin' ? 'Administrators' : 
@@ -194,9 +138,12 @@ function UserProfilePage({ profileUserId, currentUser, setCurrentPage }) {
                     {[1, 2, 3, 4, 5].map((star) => (
                       <span 
                         key={star} 
-                        className={`star ${star <= Math.round(averageRating) ? 'filled' : ''}`}
+                        style={{ 
+                          color: star <= Math.round(averageRating) ? '#f59e0b' : '#e2e8f0',
+                          fontSize: '1.2rem'
+                        }}
                       >
-                        ★
+                        {star <= Math.round(averageRating) ? '★' : '☆'}
                       </span>
                     ))}
                   </div>
@@ -220,151 +167,136 @@ function UserProfilePage({ profileUserId, currentUser, setCurrentPage }) {
         
         <div className="profile-content">
           <div className="profile-main">
-            <div className="dashboard-card reviews-section">
+            {/* Show questions for regular users and answers for professionals */}
+            <div className="dashboard-card user-content">
               <div className="card-header">
-                <h3>Atsauksmes</h3>
+                <h3>
+                  {profileUser.role === 'power' || profileUser.role === 'admin' 
+                    ? 'Lietotāja atbildes' 
+                    : 'Lietotāja jautājumi'}
+                </h3>
               </div>
               <div className="card-content">
-                {/* Create new review form */}
-                {currentUser && currentUser.id !== profileUserId && (
-                  <div className="review-form-container">
-                    <h4>Pievienot atsauksmi</h4>
-                    
-                    {success && (
-                      <div className="success-message">
-                        {success}
-                        <button onClick={() => setSuccess(null)} className="close-button">×</button>
-                      </div>
-                    )}
-                    
-                    {error && (
-                      <div className="error-message">
-                        {error}
-                        <button onClick={() => setError(null)} className="close-button">×</button>
-                      </div>
-                    )}
-                    
-                    <form onSubmit={handleSubmitReview} className="review-form">
-                      <div className="rating-selection">
-                        <label>Jūsu vērtējums:</label>
-                        <div className="stars-input">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <span 
-                              key={star} 
-                              className={`star ${star <= newReview.rating ? 'selected' : ''}`}
-                              onClick={() => handleRatingChange(star)}
+                {profileUser.role === 'power' || profileUser.role === 'admin' ? (
+                  // Show answers for professionals
+                  userAnswers && userAnswers.length > 0 ? (
+                    <ul className="answers-list">
+                      {userAnswers.map(answer => (
+                        <li key={answer.id} className="answer-item">
+                          <div className="answer-header">
+                            <a 
+                              href={`/questions/${answer.questionId}`} 
+                              className="question-title"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setCurrentPage('question-view', answer.questionId);
+                              }}
                             >
-                              ★
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                      
-                      <div className="form-group">
-                        <label htmlFor="reviewComment">Jūsu komentārs:</label>
-                        <textarea
-                          id="reviewComment"
-                          value={newReview.comment}
-                          onChange={handleCommentChange}
-                          placeholder="Uzrakstiet savu atsauksmi par šo lietotāju..."
-                          className="form-control"
-                          rows={4}
-                          disabled={isSubmitting}
-                        ></textarea>
-                      </div>
-                      
-                      <button 
-                        type="submit" 
-                        className="btn btn-primary"
-                        disabled={isSubmitting || newReview.rating === 0 || !newReview.comment.trim()}
-                      >
-                        {isSubmitting ? 'Nosūta...' : 'Iesniegt atsauksmi'}
-                      </button>
-                    </form>
-                  </div>
-                )}
-                
-                {/* Reviews list */}
-                <div className="reviews-list">
-                  <h4>Visas atsauksmes ({reviews.length})</h4>
-                  
-                  {reviews.length === 0 ? (
-                    <p className="empty-state">Šim lietotājam vēl nav atsauksmju.</p>
+                              {answer.Question ? answer.Question.title : 'Nezināms jautājums'}
+                            </a>
+                            {answer.isAccepted && (
+                              <span className="answer-accepted">✓ Pieņemta</span>
+                            )}
+                          </div>
+                          <div className="answer-meta">
+                            <span className="answer-date">{formatDate(answer.createdAt)}</span>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
                   ) : (
-                    <div className="reviews-container">
-                      {reviews.map((review) => (
-                        <div key={review.id} className="review-item">
-                            <div className="review-header">
-                            <div className="reviewer-info">
-                                {/* Add null check for reviewer property */}
-                                <span className="reviewer-name">
-                                {review.Reviewer ? review.Reviewer.username : 'Nezināms lietotājs'}
-                                </span>
-                                <span className="review-date">{formatDate(review.createdAt)}</span>
-                            </div>
-                            <div className="review-rating">
-                                {[1, 2, 3, 4, 5].map((star) => (
-                                <span 
-                                    key={star} 
-                                    className={`star ${star <= review.rating ? 'filled' : ''}`}
-                                >
-                                    ★
-                                </span>
-                                ))}
-                            </div>
-                            </div>
-                            <div className="review-content">
-                            {review.comment}
-                            </div>
-                        </div>
-                        ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="profile-sidebar">
-            <div className="dashboard-card user-questions">
-              <div className="card-header">
-                <h3>Lietotāja jautājumi</h3>
-              </div>
-              <div className="card-content">
-                {userQuestions.length === 0 ? (
-                  <p className="empty-state">Lietotājs vēl nav uzdevis jautājumus.</p>
+                    <p className="empty-state">Lietotājs vēl nav sniedzis atbildes.</p>
+                  )
                 ) : (
-                  <ul className="questions-list">
-                    {userQuestions.map(question => (
-                      <li key={question.id} className="question-item">
-                        <div className="question-header">
-                          <a 
-                            href={`/questions/${question.id}`} 
-                            className="question-title"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              setCurrentPage('question-view', question.id);
-                            }}
-                          >
-                            {question.title}
-                          </a>
-                          <span className={`question-status status-${question.status}`}>
-                            {question.status === 'open' ? 'Atvērts' : 
-                             question.status === 'answered' ? 'Atbildēts' : 
-                             'Slēgts'}
-                          </span>
-                        </div>
-                        <div className="question-meta">
-                          <span className="question-date">{formatDate(question.createdAt)}</span>
-                          <span className="question-answers">{question.answers_count || 0} atbildes</span>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
+                  // Show questions for regular users
+                  userQuestions.length > 0 ? (
+                    <ul className="questions-list">
+                      {userQuestions.map(question => (
+                        <li key={question.id} className="question-item">
+                          <div className="question-header">
+                            <a 
+                              href={`/questions/${question.id}`} 
+                              className="question-title"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setCurrentPage('question-view', question.id);
+                              }}
+                            >
+                              {question.title}
+                            </a>
+                            <span className={`question-status status-${question.status}`}>
+                              {question.status === 'open' ? 'Atvērts' : 
+                               question.status === 'answered' ? 'Atbildēts' : 
+                               'Slēgts'}
+                            </span>
+                          </div>
+                          <div className="question-meta">
+                            <span className="question-date">{formatDate(question.createdAt)}</span>
+                            <span className="question-answers">{question.answers_count || 0} atbildes</span>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="empty-state">Lietotājs vēl nav uzdevis jautājumus.</p>
+                  )
                 )}
               </div>
             </div>
             
+            {/* Show reviews section only for professionals */}
+            {(profileUser.role === 'power' || profileUser.role === 'admin') && (
+              <div className="dashboard-card reviews-section">
+                <div className="card-header">
+                  <h3>Atsauksmes</h3>
+                </div>
+                <div className="card-content">
+                  {/* Only show existing reviews, no form for adding new ones */}
+                  <div className="reviews-list">
+                    <h4>Visas atsauksmes ({reviews.length})</h4>
+                    
+                    {reviews.length === 0 ? (
+                      <p className="empty-state">Šim lietotājam vēl nav atsauksmju.</p>
+                    ) : (
+                        <div className="reviews-container">
+                        {reviews.map((review) => (
+                          <div key={review.id} className="review-item">
+                            <div className="review-header">
+                              <div className="reviewer-info">
+                                <span className="reviewer-name">
+                                  {review.Reviewer ? review.Reviewer.username : 'Nezināms lietotājs'}
+                                </span>
+                                <span className="review-date">{formatDate(review.createdAt)}</span>
+                              </div>
+                              <div className="review-rating">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                  <span 
+                                    key={star} 
+                                    style={{ 
+                                      color: star <= review.rating ? '#f59e0b' : '#e2e8f0',
+                                      fontSize: '1.2rem'
+                                    }}
+                                  >
+                                    {star <= review.rating ? '★' : '☆'}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                            <div className="review-content">
+                              {truncateText(review.comment, 50)}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <div className="profile-sidebar">
+            {/* Show professional categories for professionals */}
             {profileUser.role === 'power' && (
               <div className="dashboard-card user-tags">
                 <div className="card-header">
@@ -385,6 +317,33 @@ function UserProfilePage({ profileUserId, currentUser, setCurrentPage }) {
                 </div>
               </div>
             )}
+            
+            {/* User stats */}
+            <div className="dashboard-card user-stats">
+              <div className="card-header">
+                <h3>Statistika</h3>
+              </div>
+              <div className="card-content">
+                {profileUser.role === 'regular' && (
+                  <div className="stat-item">
+                    <span className="stat-label">Jautājumi:</span>
+                    <span className="stat-value">{userQuestions ? userQuestions.length : 0}</span>
+                  </div>
+                )}
+                {profileUser.role === 'power' && (
+                  <div className="stat-item">
+                    <span className="stat-label">Atbildes:</span>
+                    <span className="stat-value">{userAnswers ? userAnswers.length : 0}</span>
+                  </div>
+                )}
+                {profileUser.role === 'power' && (
+                  <div className="stat-item">
+                    <span className="stat-label">Vidējais vērtējums:</span>
+                    <span className="stat-value">{averageRating > 0 ? averageRating.toFixed(1) : 'Nav'}</span>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>

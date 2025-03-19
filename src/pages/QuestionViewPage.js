@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { questionService, answerService, tagService } from '../services/api';
+import { questionService, answerService, userService } from '../services/api';
 import './QuestionViewPage.css';
 import ReportModal from '../components/ReportModal';
+import ReviewModal from '../components/ReviewModal';
 
-function QuestionViewPage({ questionId, user, setCurrentPage, handleViewUserProfile }) {
+function QuestionViewPage({ questionId, user, setCurrentPage }) {
   const [question, setQuestion] = useState(null);
   const [answers, setAnswers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -16,6 +17,8 @@ function QuestionViewPage({ questionId, user, setCurrentPage, handleViewUserProf
   const [userTags, setUserTags] = useState([]);
   const [showReportModal, setShowReportModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [targetUser, setTargetUser] = useState(null);
   
   // Ielādēt jautājuma datus
   useEffect(() => {
@@ -53,7 +56,7 @@ function QuestionViewPage({ questionId, user, setCurrentPage, handleViewUserProf
     const fetchUserTags = async () => {
       if (user && (user.role === 'power' || user.role === 'admin')) {
         try {
-          const response = await tagService.getUserProfessionalTags(user.id);
+          const response = await userService.getUserProfessionalTags(user.id);
           setUserTags(response.data);
         } catch (error) {
           console.error('Kļūda ielādējot lietotāja tagus:', error);
@@ -77,6 +80,32 @@ function QuestionViewPage({ questionId, user, setCurrentPage, handleViewUserProf
       setCanAnswer(false);
     }
   }, [user, question, userTags]);
+  
+  // Handle opening review modal
+  const handleOpenReviewModal = (answerUser) => {
+    setTargetUser(answerUser);
+    setShowReviewModal(true);
+  };
+
+  // Handle submitting a review
+  const handleSubmitReview = async (reviewData) => {
+    try {
+      await userService.createUserReview(reviewData.userId, {
+        rating: reviewData.rating,
+        comment: reviewData.comment
+      });
+      
+      setSubmitSuccess('Atsauksme veiksmīgi iesniegta!');
+      
+      // Auto-hide success message after 3 seconds
+      setTimeout(() => {
+        setSubmitSuccess(null);
+      }, 3000);
+    } catch (error) {
+      console.error('Kļūda iesniedzot atsauksmi:', error);
+      setSubmitError('Kļūda iesniedzot atsauksmi. Lūdzu, mēģiniet vēlreiz.');
+    }
+  };
   
   // Atbildes iesniegšana
   const handleSubmitAnswer = async (e) => {
@@ -354,36 +383,57 @@ function QuestionViewPage({ questionId, user, setCurrentPage, handleViewUserProf
                     {answer.content}
                   </div>
                   
-                 <div className="answer-meta">
-                  <div className="answer-author">
-                    <span 
-                      className="author-name"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        if (answer.User && answer.User.id) {
-                          setCurrentPage('user-profile', answer.User.id);
-                        }
-                      }}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      {answer.User ? answer.User.username : 'Nezināms lietotājs'}
-                    </span>
-                    {/* Rest of the code remains the same */}
-                  </div>
-                    
-                    {/* Pieņemt atbildi poga (tikai jautājuma autoram un, ja jautājums nav slēgts) */}
-                    {user && 
-                     user.id === question.userId && 
-                     question.status !== 'closed' && 
-                     !answer.isAccepted && (
-                      <button 
-                        className="btn btn-outline accept-answer-btn"
-                        onClick={() => handleAcceptAnswer(answer.id)}
+                  <div className="answer-meta">
+                    <div className="answer-author">
+                      <span 
+                        className="author-name"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (answer.User && answer.User.id) {
+                            setCurrentPage('user-profile', answer.User.id);
+                          }
+                        }}
+                        style={{ cursor: 'pointer' }}
                       >
-                        Pieņemt kā risinājumu
-                      </button>
-                    )}
+                        {answer.User ? answer.User.username : 'Nezināms lietotājs'}
+                      </span>
+                      {answer.User && answer.User.role && (
+                        <span className={`author-badge ${answer.User.role === 'power' ? 'professional' : answer.User.role === 'admin' ? 'admin' : ''}`}>
+                          {answer.User.role === 'power' ? 'Profesionālis' : 
+                           answer.User.role === 'admin' ? 'Administrators' : ''}
+                        </span>
+                      )}
+                    </div>
+                    
+                    <div className="answer-actions">
+                      {/* Button to leave a review - only visible to question author */}
+                      {user && 
+                       user.id === question.userId && 
+                       !answer.isReviewed &&
+                       answer.User && 
+                       answer.User.id !== user.id && (
+                        <button 
+                          className="btn btn-sm btn-outline"
+                          onClick={() => handleOpenReviewModal(answer.User)}
+                        >
+                          Atstāt atsauksmi
+                        </button>
+                      )}
+                      
+                      {/* Accept answer button - only visible to question author */}
+                      {user && 
+                       user.id === question.userId && 
+                       question.status !== 'closed' && 
+                       !answer.isAccepted && (
+                        <button 
+                          className="btn btn-outline accept-answer-btn"
+                          onClick={() => handleAcceptAnswer(answer.id)}
+                        >
+                          Pieņemt kā risinājumu
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -458,10 +508,16 @@ function QuestionViewPage({ questionId, user, setCurrentPage, handleViewUserProf
         onSubmit={handleReportQuestion}
         type="question"
       />
+      
+      {/* Review Modal */}
+      <ReviewModal
+        isOpen={showReviewModal}
+        onClose={() => setShowReviewModal(false)}
+        onSubmit={handleSubmitReview}
+        targetUser={targetUser || {}}
+      />
     </div>
   );
-
 }
-
 
 export default QuestionViewPage;
