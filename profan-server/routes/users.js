@@ -130,4 +130,6 @@ router.delete('/:id', authenticateToken, isAdmin, userController.deleteUser);
 // Report user route
 router.post('/:id/report', authenticateToken, userController.reportUser);
 
+router.get('/:id', userController.getUserById);
+
 module.exports = router;

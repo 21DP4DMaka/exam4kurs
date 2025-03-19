@@ -300,12 +300,13 @@ function QuestionsPage({ setCurrentPage, handleViewQuestion, handleViewUserProfi
                         ))}
                       </div>
                       
+                   
                       <div className="question-info">
                         <span 
                           className="question-author"
                           onClick={(e) => {
                             e.stopPropagation(); // Prevent triggering the parent card click
-                            if (handleViewUserProfile && question.User) {
+                            if (handleViewUserProfile && question.User && question.User.id) {
                               handleViewUserProfile(question.User.id);
                             }
                           }}

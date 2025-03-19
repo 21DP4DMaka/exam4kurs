@@ -48,6 +48,11 @@ function UserProfilePage({ profileUserId, currentUser, setCurrentPage }) {
   const handleRatingChange = (rating) => {
     setNewReview({...newReview, rating});
   };
+
+  const formatEmail = (email) => {
+    return email || 'Nav norādīts e-pasts';
+  };
+  
   
   const handleCommentChange = (e) => {
     setNewReview({...newReview, comment: e.target.value});
@@ -172,7 +177,12 @@ function UserProfilePage({ profileUserId, currentUser, setCurrentPage }) {
           </div>
           
           <div className="profile-info">
-            <h2>{profileUser.username}</h2>
+                <h2>{profileUser.username}</h2>
+                {profileUser.email && (
+                    <div className="profile-email">
+                    <span>{formatEmail(profileUser.email)}</span>
+                    </div>
+                )}
             <div className="profile-meta">
               <span className="profile-role">
                 {profileUser.role === 'admin' ? 'Administrators' : 

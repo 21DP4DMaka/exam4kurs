@@ -78,13 +78,15 @@ function App() {
   
   // Add a function to handle user profile navigation
   const handleViewUserProfile = (userId) => {
-    console.log("Opening user profile with ID:", userId); // Debug log
+    console.log("Opening user profile with ID:", userId);
     setSelectedUserId(userId);
     setCurrentPage('user-profile');
   };
   
   // Custom setCurrentPage function to handle additional parameters
   const setCurPage = (page, param = null) => {
+    console.log(`Setting current page to: ${page}, with param: ${param}`);
+    
     if (page === 'question-view' && param) {
       setSelectedQuestionId(param);
     } else if (page === 'user-profile' && param) {
@@ -172,16 +174,16 @@ function App() {
           user={user} 
           setCurrentPage={setCurPage} 
         />;
-      case 'user-profile':
-        console.log("Rendering user profile for ID:", selectedUserId); // Debug log
-        if (!selectedUserId) {
-          return <DashboardPage 
-            user={user} 
-            setCurrentPage={setCurPage} 
-            handleViewQuestion={handleViewQuestion} 
-          />;
-        }
-        return <UserProfilePage 
+        case 'user-profile':
+          console.log("Rendering user profile for ID:", selectedUserId);
+          if (!selectedUserId) {
+            return <DashboardPage 
+              user={user} 
+              setCurrentPage={setCurPage} 
+              handleViewQuestion={handleViewQuestion} 
+            />;
+          }
+          return <UserProfilePage 
           profileUserId={selectedUserId} 
           currentUser={user} 
           setCurrentPage={setCurPage} 
@@ -200,7 +202,9 @@ function App() {
         onLogout={handleLogout}
         setCurrentPage={setCurPage}
       />
+      <main>
       {renderPage()}
+      </main>
       <Footer />
     </div>
   );

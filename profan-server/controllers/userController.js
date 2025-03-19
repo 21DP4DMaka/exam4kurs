@@ -237,3 +237,84 @@ exports.reportUser = async (req, res) => {
     res.status(500).json({ message: 'Servera kļūda ziņojot par lietotāju' });
   }
 };
+
+// Add this function to userController.js
+
+exports.getUserQuestions = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+    
+    const { count, rows } = await Question.findAndCountAll({
+      where: { userId },
+      include: [
+        {
+          model: User,
+          attributes: ['id', 'username', 'profileImage']
+        },
+        {
+          model: Tag,
+          through: { attributes: [] },
+          attributes: ['id', 'name']
+        }
+      ],
+      order: [['createdAt', 'DESC']],
+      limit,
+      offset,
+      distinct: true
+    });
+    
+    // Get answer count for each question
+    const questionsWithCounts = await Promise.all(rows.map(async (question) => {
+      const answersCount = await Answer.count({
+        where: { questionId: question.id }
+      });
+      
+      const questionJson = question.toJSON();
+      questionJson.answers_count = answersCount;
+      return questionJson;
+    }));
+    
+    res.json({
+      questions: questionsWithCounts,
+      totalItems: count,
+      totalPages: Math.ceil(count / limit),
+      currentPage: page
+    });
+  } catch (error) {
+    console.error('Error fetching user questions:', error);
+    res.status(500).json({ message: 'Servera kļūda iegūstot lietotāja jautājumus' });
+  }
+}
+
+exports.getUserById = async (req, res) => {
+  try {
+    const user = await User.findByPk(req.params.id, {
+      attributes: { exclude: ['password'] },
+      include: [
+        {
+          model: ProfessionalProfile,
+          required: false,
+          include: [
+            {
+              model: Tag,
+              through: { attributes: [] },
+              attributes: ['id', 'name', 'description']
+            }
+          ]
+        }
+      ]
+    });
+    
+    if (!user) {
+      return res.status(404).json({ message: 'Lietotājs nav atrasts' });
+    }
+    
+    res.json(user);
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    res.status(500).json({ message: 'Servera kļūda iegūstot lietotāju' });
+  }
+};
