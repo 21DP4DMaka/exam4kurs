@@ -45,14 +45,14 @@ exports.createAnswer = async (req, res) => {
     
     // Pārbaudīt, vai lietotājam ir kāds no jautājuma tagiem
     const questionTagIds = question.Tags.map(tag => tag.id);
-    const userTagIds = userProfile.Tags.map(tag => tag.id);
-    
-    const hasMatchingTag = questionTagIds.some(tagId => userTagIds.includes(tagId));
-    
-    if (!hasMatchingTag) {
-      await t.rollback();
-      return res.status(403).json({ message: 'Jums nav atbilstošo kategoriju, lai atbildētu uz šo jautājumu' });
-    }
+      const userTagIds = userProfile.Tags.map(tag => tag.id);
+
+      const hasMatchingTag = questionTagIds.some(tagId => userTagIds.includes(tagId));
+
+      if (!hasMatchingTag) {
+        await t.rollback();
+        return res.status(403).json({ message: 'Jums nav atbilstošo kategoriju, lai atbildētu uz šo jautājumu' });
+      }
     
     // Izveidot jaunu atbildi
     const answer = await Answer.create({

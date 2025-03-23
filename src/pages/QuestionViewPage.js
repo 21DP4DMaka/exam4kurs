@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { questionService, answerService, userService } from '../services/api';
+import { questionService, answerService, userService, tagService } from '../services/api';
 import './QuestionViewPage.css';
 import ReportModal from '../components/ReportModal';
 import ReviewModal from '../components/ReviewModal';
@@ -56,7 +56,7 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
     const fetchUserTags = async () => {
       if (user && (user.role === 'power' || user.role === 'admin')) {
         try {
-          const response = await userService.getUserProfessionalTags(user.id);
+          const response = await tagService.getUserProfessionalTags(user.id);
           setUserTags(response.data);
         } catch (error) {
           console.error('Kļūda ielādējot lietotāja tagus:', error);
