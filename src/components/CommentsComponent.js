@@ -10,7 +10,7 @@ const CommentsComponent = ({ questionId, answerId, currentUser, commentsService 
   const [newComment, setNewComment] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [debugMode, setDebugMode] = useState(true); // Keep this true for debugging
+  const [debugMode, setDebugMode] = useState(true); // Set to true temporarily to help debug issues
 
   // Load comments
   useEffect(() => {
@@ -116,34 +116,35 @@ const CommentsComponent = ({ questionId, answerId, currentUser, commentsService 
     }
   };
 
-  // Check if user can comment - FIXED VERSION
+  // Check if user can comment - ROBUST FIXED VERSION
   const canComment = () => {
     if (!currentUser) return false;
     
-    // Make sure we have integer IDs for comparison
-    const currentUserId = parseInt(currentUser.id);
-    const questionAuthorId = parseInt(commentContext.questionAuthorId);
-    const answerAuthorId = parseInt(commentContext.answerAuthorId);
+    // Safe parsing function to handle null, undefined, or non-numeric strings
+    const safeParseInt = (val) => {
+      if (val === null || val === undefined) return null;
+      const parsed = parseInt(val);
+      return isNaN(parsed) ? null : parsed;
+    };
     
-    const isQuestionAuthor = currentUserId === questionAuthorId;
-    const isAnswerAuthor = currentUserId === answerAuthorId;
+    // Safely parse all IDs to integers or null
+    const currentUserId = safeParseInt(currentUser.id);
+    const questionAuthorId = safeParseInt(commentContext.questionAuthorId);
+    const answerAuthorId = safeParseInt(commentContext.answerAuthorId);
     
     if (debugMode) {
       console.log('Permission check:', {
         currentUserId,
         questionAuthorId,
         answerAuthorId,
-        isQuestionAuthor,
-        isAnswerAuthor,
-        canComment: isQuestionAuthor || isAnswerAuthor
+        isQuestionAuthor: currentUserId === questionAuthorId,
+        isAnswerAuthor: currentUserId === answerAuthorId
       });
     }
     
-    // For debugging, you can temporarily allow all users to comment by returning true
-    // return true;
-    
-    // The question author and the answer author can always comment
-    return isQuestionAuthor || isAnswerAuthor;
+    // Only return true if we have valid IDs and they match
+    return (currentUserId !== null && questionAuthorId !== null && currentUserId === questionAuthorId) ||
+           (currentUserId !== null && answerAuthorId !== null && currentUserId === answerAuthorId);
   };
 
   // Format date
@@ -191,10 +192,10 @@ const CommentsComponent = ({ questionId, answerId, currentUser, commentsService 
               <div className="comment-header">
                 <div className="comment-author">
                   <span className="author-name">{comment.User ? comment.User.username : 'Nezināms lietotājs'}</span>
-                  {comment.User && comment.User.id === commentContext.questionAuthorId && (
+                  {comment.User && comment.User.id === parseInt(commentContext.questionAuthorId) && (
                     <span className="author-badge question-author">Jautātājs</span>
                   )}
-                  {comment.User && comment.User.id === commentContext.answerAuthorId && (
+                  {comment.User && comment.User.id === parseInt(commentContext.answerAuthorId) && (
                     <span className="author-badge answer-author">Atbildētājs</span>
                   )}
                 </div>
