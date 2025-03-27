@@ -1,11 +1,12 @@
-// profan-server/controllers/commentController.js
 const { Comment, User, Answer, Question, Notification, sequelize } = require('../models');
 const { Op } = require('sequelize');
 
-// Get comments for an answer
+// Get comments for an answer - Fixed to include proper author IDs
 exports.getCommentsByAnswerId = async (req, res) => {
     try {
+      // For the route /api/answers/:answerId/comments
       const answerId = req.params.answerId;
+      console.log(`Getting comments for answerId: ${answerId}`);
       
       // Find the answer to get question and user info
       const answer = await Answer.findByPk(answerId, {
@@ -22,8 +23,17 @@ exports.getCommentsByAnswerId = async (req, res) => {
       });
       
       if (!answer) {
+        console.log(`Answer not found for ID: ${answerId}`);
         return res.status(404).json({ message: 'Atbilde nav atrasta' });
       }
+      
+      // Log the found answer for debugging
+      console.log('Found answer:', {
+        id: answer.id,
+        questionId: answer.Question.id,
+        questionAuthorId: answer.Question.userId,
+        answerAuthorId: answer.userId
+      });
       
       // Get all comments for this answer
       const comments = await Comment.findAll({
@@ -36,6 +46,8 @@ exports.getCommentsByAnswerId = async (req, res) => {
         ],
         order: [['createdAt', 'ASC']]
       });
+      
+      console.log(`Found ${comments.length} comments`);
       
       // Add context info for the client
       const responseData = {
@@ -52,13 +64,15 @@ exports.getCommentsByAnswerId = async (req, res) => {
   };
   
 
-// Create a new comment
+// Create a new comment - Fixed to properly check permissions
 exports.createComment = async (req, res) => {
   const t = await sequelize.transaction();
   
   try {
     const { answerId, questionId, content } = req.body;
     const userId = req.user.id;
+    
+    console.log('Creating comment with data:', { answerId, questionId, userId, contentLength: content?.length });
     
     // Validate required fields
     if (!answerId || !questionId || !content || !content.trim()) {
@@ -82,12 +96,22 @@ exports.createComment = async (req, res) => {
       return res.status(404).json({ message: 'Atbilde vai jautājums nav atrasts' });
     }
     
+    // Log permission check information
+    console.log('Permission check:', {
+      userId,
+      questionAuthorId: answer.Question.userId,
+      answerAuthorId: answer.userId,
+      isQuestionAuthor: userId === answer.Question.userId,
+      isAnswerAuthor: userId === answer.userId
+    });
+    
+    // Check if user is the question author or answer author
     if (answer.userId !== userId && answer.Question.userId !== userId) {
-        await t.rollback();
-        return res.status(403).json({ 
-          message: 'Tikai jautājuma autors vai atbildes autors var pievienot komentārus' 
-        });
-      }
+      await t.rollback();
+      return res.status(403).json({ 
+        message: 'Tikai jautājuma autors vai atbildes autors var pievienot komentārus' 
+      });
+    }
     
     // Create comment
     const comment = await Comment.create({
@@ -131,6 +155,7 @@ exports.createComment = async (req, res) => {
   }
 };
 
+// Rest of the controller code remains the same...
 // Update a comment (only the creator can update)
 exports.updateComment = async (req, res) => {
   const t = await sequelize.transaction();

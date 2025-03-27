@@ -14,8 +14,9 @@ const tagRoutes = require('./routes/tags');
 const userRoutes = require('./routes/users');
 const tagApplicationRoutes = require('./routes/tagApplication');
 const reviewRoutes = require('./routes/reviews');
-const commentRoutes = require('./routes/comments'); // Add new comment routes
-const attachmentRoutes = require('./routes/attachments'); // Add new attachment routes
+const commentRoutes = require('./routes/comments'); // Make sure this is imported
+const attachmentRoutes = require('./routes/attachments');
+const answerCommentsRoutes = require('./routes/answerComments');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -36,8 +37,10 @@ app.use('/api/tags', tagRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/tag-applications', tagApplicationRoutes);
 app.use('/api/reviews', reviewRoutes);
-app.use('/api/comments', commentRoutes); // Add comment routes
-app.use('/api', attachmentRoutes); // Add attachment routes
+app.use('/api/answers/:answerId/comments', commentRoutes);  // This line is missing
+app.use('/api/comments', commentRoutes);
+app.use('/api', attachmentRoutes);
+
 
 // Test route
 app.get('/', (req, res) => {

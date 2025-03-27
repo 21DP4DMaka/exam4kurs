@@ -1,5 +1,3 @@
-// src/components/CommentsComponent.js - Fixed version
-
 import React, { useState, useEffect } from 'react';
 import './CommentsComponent.css';
 
@@ -12,16 +10,26 @@ const CommentsComponent = ({ questionId, answerId, currentUser, commentsService 
   const [newComment, setNewComment] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [debugMode, setDebugMode] = useState(true); // Set to false in production
 
   // Load comments
   useEffect(() => {
     const fetchComments = async () => {
-      if (!answerId) return;
+      if (!answerId) {
+        console.log('No answerId provided, cannot load comments');
+        return;
+      }
       
       try {
         setIsLoading(true);
         setError(null);
+        
+        if (debugMode) console.log(`Fetching comments for answerId: ${answerId}`);
+        
+        // Make the API call to get comments
         const response = await commentsService.getComments(answerId);
+        
+        if (debugMode) console.log('Comments API response:', response);
         
         // Extract comments and author IDs from response
         const { comments: commentsList = [], questionAuthorId, answerAuthorId } = response.data;
@@ -31,16 +39,33 @@ const CommentsComponent = ({ questionId, answerId, currentUser, commentsService 
           questionAuthorId,
           answerAuthorId
         });
+        
+        if (debugMode) {
+          console.log('Set comment context:', {
+            questionAuthorId,
+            answerAuthorId,
+            commentsCount: commentsList?.length || 0
+          });
+        }
       } catch (err) {
         console.error('Failed to load comments:', err);
         setError('Neizdevās ielādēt komentārus. Lūdzu, mēģiniet vēlreiz.');
+        
+        if (debugMode) {
+          console.log('Error details:', {
+            message: err.message,
+            status: err.response?.status,
+            statusText: err.response?.statusText,
+            data: err.response?.data
+          });
+        }
       } finally {
         setIsLoading(false);
       }
     };
     
     fetchComments();
-  }, [answerId, commentsService]);
+  }, [answerId, commentsService, debugMode]);
 
   // Submit a new comment
   const handleSubmitComment = async (e) => {
@@ -51,11 +76,23 @@ const CommentsComponent = ({ questionId, answerId, currentUser, commentsService 
     try {
       setIsLoading(true);
       setError(null);
+      
+      if (debugMode) {
+        console.log('Submitting comment with data:', {
+          answerId,
+          questionId,
+          content: newComment,
+          currentUserId: currentUser?.id
+        });
+      }
+      
       const response = await commentsService.createComment({
         answerId,
         questionId,
         content: newComment
       });
+      
+      if (debugMode) console.log('Comment submission response:', response);
       
       // Add the new comment to the list
       if (response.data && response.data.comment) {
@@ -65,26 +102,39 @@ const CommentsComponent = ({ questionId, answerId, currentUser, commentsService 
     } catch (err) {
       console.error('Failed to submit comment:', err);
       setError('Neizdevās pievienot komentāru. Lūdzu, mēģiniet vēlreiz.');
+      
+      if (debugMode) {
+        console.log('Error details:', {
+          message: err.message,
+          status: err.response?.status,
+          statusText: err.response?.statusText,
+          data: err.response?.data
+        });
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Check if user can comment - fixed logic
+  // Check if user can comment
   const canComment = () => {
     if (!currentUser) return false;
     
-    // Debug info
-    console.log('Current user:', currentUser.id);
-    console.log('Question author:', commentContext.questionAuthorId);
-    console.log('Answer author:', commentContext.answerAuthorId);
+    const isQuestionAuthor = currentUser.id === commentContext.questionAuthorId;
+    const isAnswerAuthor = currentUser.id === commentContext.answerAuthorId;
     
-    // The question author and the answer author can always comment
-    if (currentUser.id === commentContext.questionAuthorId || currentUser.id === commentContext.answerAuthorId) {
-      return true;
+    if (debugMode) {
+      console.log('Permission check:', {
+        currentUserId: currentUser.id,
+        questionAuthorId: commentContext.questionAuthorId,
+        answerAuthorId: commentContext.answerAuthorId,
+        isQuestionAuthor,
+        isAnswerAuthor
+      });
     }
     
-    return false;
+    // The question author and the answer author can always comment
+    return isQuestionAuthor || isAnswerAuthor;
   };
 
   // Format date
@@ -105,8 +155,24 @@ const CommentsComponent = ({ questionId, answerId, currentUser, commentsService 
       
       {error && <div className="comments-error">{error}</div>}
       
+      {debugMode && (
+        <div style={{background: '#f0f0f0', padding: '10px', marginBottom: '10px', fontSize: '12px', border: '1px solid #ccc'}}>
+          <details>
+            <summary>Debug Info</summary>
+            <pre>{JSON.stringify({
+              currentUser: currentUser ? { id: currentUser.id, role: currentUser.role } : null,
+              commentContext,
+              canComment: currentUser ? canComment() : false,
+              answerId,
+              questionId,
+              commentsCount: comments.length
+            }, null, 2)}</pre>
+          </details>
+        </div>
+      )}
+      
       <div className="comments-list">
-        {isLoading ? (
+        {isLoading && !comments.length ? (
           <p className="loading-comments">Ielādē komentārus...</p>
         ) : comments.length === 0 ? (
           <p className="no-comments">Nav komentāru. Pievienojiet pirmo!</p>
