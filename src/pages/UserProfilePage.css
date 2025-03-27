@@ -405,3 +405,34 @@
       align-self: flex-start;
     }
   }
+
+  .review-question {
+    margin-top: 10px;
+    font-size: 0.9rem;
+    padding-top: 8px;
+    border-top: 1px solid #e2e8f0;
+  }
+  
+  .review-question span {
+    color: #718096;
+  }
+  
+  .question-link {
+    color: #3182ce;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  
+  .question-link:hover {
+    color: #2c5282;
+    text-decoration: underline;
+  }
+ 
+.question-reference {
+  background-color: #f1f5f9;
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  color: #4a5568;
+  margin-top: 5px;
+}

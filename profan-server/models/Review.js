@@ -1,3 +1,5 @@
+// profan-server/models/Review.js (updated)
+
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
@@ -16,6 +18,11 @@ const Review = sequelize.define('Review', {
     type: DataTypes.INTEGER,
     allowNull: false,
     comment: 'ID of the user writing the review'
+  },
+  questionId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    comment: 'ID of the question this review is associated with'
   },
   rating: {
     type: DataTypes.INTEGER,

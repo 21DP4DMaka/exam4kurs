@@ -1,8 +1,14 @@
+// src/components/CommentsComponent.js - Fixed version
+
 import React, { useState, useEffect } from 'react';
 import './CommentsComponent.css';
 
 const CommentsComponent = ({ questionId, answerId, currentUser, commentsService }) => {
   const [comments, setComments] = useState([]);
+  const [commentContext, setCommentContext] = useState({
+    questionAuthorId: null,
+    answerAuthorId: null
+  });
   const [newComment, setNewComment] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -14,8 +20,17 @@ const CommentsComponent = ({ questionId, answerId, currentUser, commentsService 
       
       try {
         setIsLoading(true);
+        setError(null);
         const response = await commentsService.getComments(answerId);
-        setComments(response.data);
+        
+        // Extract comments and author IDs from response
+        const { comments: commentsList = [], questionAuthorId, answerAuthorId } = response.data;
+        
+        setComments(commentsList || []);
+        setCommentContext({
+          questionAuthorId,
+          answerAuthorId
+        });
       } catch (err) {
         console.error('Failed to load comments:', err);
         setError('Neizdevās ielādēt komentārus. Lūdzu, mēģiniet vēlreiz.');
@@ -35,6 +50,7 @@ const CommentsComponent = ({ questionId, answerId, currentUser, commentsService 
     
     try {
       setIsLoading(true);
+      setError(null);
       const response = await commentsService.createComment({
         answerId,
         questionId,
@@ -42,7 +58,9 @@ const CommentsComponent = ({ questionId, answerId, currentUser, commentsService 
       });
       
       // Add the new comment to the list
-      setComments([...comments, response.data.comment]);
+      if (response.data && response.data.comment) {
+        setComments([...comments, response.data.comment]);
+      }
       setNewComment('');
     } catch (err) {
       console.error('Failed to submit comment:', err);
@@ -50,6 +68,23 @@ const CommentsComponent = ({ questionId, answerId, currentUser, commentsService 
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Check if user can comment - fixed logic
+  const canComment = () => {
+    if (!currentUser) return false;
+    
+    // Debug info
+    console.log('Current user:', currentUser.id);
+    console.log('Question author:', commentContext.questionAuthorId);
+    console.log('Answer author:', commentContext.answerAuthorId);
+    
+    // The question author and the answer author can always comment
+    if (currentUser.id === commentContext.questionAuthorId || currentUser.id === commentContext.answerAuthorId) {
+      return true;
+    }
+    
+    return false;
   };
 
   // Format date
@@ -64,18 +99,6 @@ const CommentsComponent = ({ questionId, answerId, currentUser, commentsService 
     return new Date(dateString).toLocaleDateString('lv-LV', options);
   };
 
-  // Check if user can comment
-  const canComment = () => {
-    if (!currentUser) return false;
-    
-    // The question author and the answer author can always comment
-    if (currentUser.id === comments.questionAuthorId || currentUser.id === comments.answerAuthorId) {
-      return true;
-    }
-    
-    return false;
-  };
-
   return (
     <div className="comments-component">
       <h4 className="comments-title">Komentāri {comments.length > 0 && `(${comments.length})`}</h4>
@@ -83,19 +106,22 @@ const CommentsComponent = ({ questionId, answerId, currentUser, commentsService 
       {error && <div className="comments-error">{error}</div>}
       
       <div className="comments-list">
-        {comments.length === 0 ? (
+        {isLoading ? (
+          <p className="loading-comments">Ielādē komentārus...</p>
+        ) : comments.length === 0 ? (
           <p className="no-comments">Nav komentāru. Pievienojiet pirmo!</p>
         ) : (
           comments.map(comment => (
             <div key={comment.id} className="comment-item">
               <div className="comment-header">
                 <div className="comment-author">
-                  <span className="author-name">{comment.User.username}</span>
-                  {comment.User.id === comments.questionAuthorId ? (
+                  <span className="author-name">{comment.User ? comment.User.username : 'Nezināms lietotājs'}</span>
+                  {comment.User && comment.User.id === commentContext.questionAuthorId && (
                     <span className="author-badge question-author">Jautātājs</span>
-                  ) : comment.User.id === comments.answerAuthorId ? (
+                  )}
+                  {comment.User && comment.User.id === commentContext.answerAuthorId && (
                     <span className="author-badge answer-author">Atbildētājs</span>
-                  ) : null}
+                  )}
                 </div>
                 <span className="comment-date">{formatDate(comment.createdAt)}</span>
               </div>

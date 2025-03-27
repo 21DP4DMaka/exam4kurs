@@ -1,8 +1,7 @@
-// src/components/ReviewModal.js
 import React, { useState, useEffect } from 'react';
-import './TagApplicationModal.css'; // Reuse existing modal styling
+import './TagApplicationModal.css';
 
-function ReviewModal({ isOpen, onClose, onSubmit, targetUser }) {
+function ReviewModal({ isOpen, onClose, onSubmit, targetUser, questionId, questionTitle }) {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -36,11 +35,12 @@ function ReviewModal({ isOpen, onClose, onSubmit, targetUser }) {
       setIsSubmitting(true);
       setError(null);
       
-      // Call the provided onSubmit function with rating and comment
+      // Call the provided onSubmit function with rating, comment, and questionId
       await onSubmit({
         userId: targetUser.id,
         rating,
-        comment
+        comment,
+        questionId
       });
       
       // Close modal on success
@@ -71,10 +71,16 @@ function ReviewModal({ isOpen, onClose, onSubmit, targetUser }) {
         <form onSubmit={handleSubmit} className="tag-application-modal-form">
           {error && <div className="tag-modal-error">{error}</div>}
           
+          {questionTitle && (
+            <div className="form-group">
+              <label>Jautājums:</label>
+              <div className="question-reference">{questionTitle}</div>
+            </div>
+          )}
+          
           <div className="form-group">
             <label>Jūsu vērtējums:</label>
             <div className="stars-input" style={{ fontSize: '2rem', display: 'flex', gap: '5px' }}>
-              {/* Use ★ and ☆ to make selected/unselected stars clearer */}
               {[1, 2, 3, 4, 5].map((star) => (
                 <span 
                   key={star} 
@@ -84,7 +90,6 @@ function ReviewModal({ isOpen, onClose, onSubmit, targetUser }) {
                   }}
                   onClick={() => setRating(star)}
                 >
-                  {/* Use filled star for selected, outline for unselected */}
                   {star <= rating ? '★' : '☆'}
                 </span>
               ))}

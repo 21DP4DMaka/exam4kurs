@@ -64,6 +64,10 @@ Attachment.belongsTo(User, { foreignKey: 'userId' });
 Question.hasMany(Attachment, { foreignKey: 'questionId' });
 Attachment.belongsTo(Question, { foreignKey: 'questionId' });
 
+Review.belongsTo(Question, { foreignKey: 'questionId' });
+Question.hasMany(Review, { foreignKey: 'questionId' });
+
+
 // Export models
 module.exports = {
   sequelize,

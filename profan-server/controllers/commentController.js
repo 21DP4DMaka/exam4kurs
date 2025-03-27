@@ -4,52 +4,53 @@ const { Op } = require('sequelize');
 
 // Get comments for an answer
 exports.getCommentsByAnswerId = async (req, res) => {
-  try {
-    const answerId = req.params.answerId;
-    
-    // Find the answer to get question and user info
-    const answer = await Answer.findByPk(answerId, {
-      include: [
-        {
-          model: Question,
-          attributes: ['id', 'userId'],
-        },
-        {
-          model: User,
-          attributes: ['id']
-        }
-      ]
-    });
-    
-    if (!answer) {
-      return res.status(404).json({ message: 'Atbilde nav atrasta' });
+    try {
+      const answerId = req.params.answerId;
+      
+      // Find the answer to get question and user info
+      const answer = await Answer.findByPk(answerId, {
+        include: [
+          {
+            model: Question,
+            attributes: ['id', 'userId'],
+          },
+          {
+            model: User,
+            attributes: ['id']
+          }
+        ]
+      });
+      
+      if (!answer) {
+        return res.status(404).json({ message: 'Atbilde nav atrasta' });
+      }
+      
+      // Get all comments for this answer
+      const comments = await Comment.findAll({
+        where: { answerId },
+        include: [
+          {
+            model: User,
+            attributes: ['id', 'username', 'profileImage', 'role']
+          }
+        ],
+        order: [['createdAt', 'ASC']]
+      });
+      
+      // Add context info for the client
+      const responseData = {
+        comments,
+        questionAuthorId: answer.Question.userId,
+        answerAuthorId: answer.userId
+      };
+      
+      res.json(responseData);
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+      res.status(500).json({ message: 'Servera kļūda iegūstot komentārus' });
     }
-    
-    // Get all comments for this answer
-    const comments = await Comment.findAll({
-      where: { answerId },
-      include: [
-        {
-          model: User,
-          attributes: ['id', 'username', 'profileImage', 'role']
-        }
-      ],
-      order: [['createdAt', 'ASC']]
-    });
-    
-    // Add context info for the client
-    const responseData = {
-      comments,
-      questionAuthorId: answer.Question.userId,
-      answerAuthorId: answer.userId
-    };
-    
-    res.json(responseData);
-  } catch (error) {
-    console.error('Error fetching comments:', error);
-    res.status(500).json({ message: 'Servera kļūda iegūstot komentārus' });
-  }
-};
+  };
+  
 
 // Create a new comment
 exports.createComment = async (req, res) => {
@@ -81,13 +82,12 @@ exports.createComment = async (req, res) => {
       return res.status(404).json({ message: 'Atbilde vai jautājums nav atrasts' });
     }
     
-    // Check if user is either question author or answer author
     if (answer.userId !== userId && answer.Question.userId !== userId) {
-      await t.rollback();
-      return res.status(403).json({ 
-        message: 'Tikai jautājuma autors vai atbildes autors var pievienot komentārus' 
-      });
-    }
+        await t.rollback();
+        return res.status(403).json({ 
+          message: 'Tikai jautājuma autors vai atbildes autors var pievienot komentārus' 
+        });
+      }
     
     // Create comment
     const comment = await Comment.create({
@@ -202,7 +202,7 @@ exports.deleteComment = async (req, res) => {
     
     await t.commit();
     
-    res.json({
+    res.json({  
       message: 'Komentārs veiksmīgi dzēsts',
       commentId
     });

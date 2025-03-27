@@ -1,49 +1,53 @@
-const { Review, User, sequelize } = require('../models');
+
+const { Review, User, Question, sequelize } = require('../models');
 const { Op } = require('sequelize');
 
 // Get reviews for a user
-
 exports.getUserReviews = async (req, res) => {
-    try {
-      const userId = req.params.userId;
-      
-      // Find all reviews for the user
-      const reviews = await Review.findAll({
-        where: { userId },
-        include: [
-          {
-            model: User,
-            as: 'Reviewer',  // Note the 'Reviewer' alias with capital R
-            attributes: ['id', 'username', 'profileImage', 'role']
-          }
-        ],
-        order: [['createdAt', 'DESC']]
-      });
-      
-      // Calculate average rating
-      let averageRating = 0;
-      if (reviews.length > 0) {
-        const sum = reviews.reduce((total, review) => total + review.rating, 0);
-        averageRating = sum / reviews.length;
-      }
-      
-      res.json({
-        reviews,        // This will contain reviews with Review.Reviewer property
-        averageRating,
-        totalReviews: reviews.length
-      });
-    } catch (error) {
-      console.error('Error fetching user reviews:', error);
-      res.status(500).json({ message: 'Servera kļūda iegūstot atsauksmes' });
+  try {
+    const userId = req.params.userId;
+    
+    // Find all reviews for the user, now including the associated question
+    const reviews = await Review.findAll({
+      where: { userId },
+      include: [
+        {
+          model: User,
+          as: 'Reviewer',
+          attributes: ['id', 'username', 'profileImage', 'role']
+        },
+        {
+          model: Question,
+          attributes: ['id', 'title']
+        }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+    
+    // Calculate average rating
+    let averageRating = 0;
+    if (reviews.length > 0) {
+      const sum = reviews.reduce((total, review) => total + review.rating, 0);
+      averageRating = sum / reviews.length;
     }
-  };
+    
+    res.json({
+      reviews,
+      averageRating,
+      totalReviews: reviews.length
+    });
+  } catch (error) {
+    console.error('Error fetching user reviews:', error);
+    res.status(500).json({ message: 'Servera kļūda iegūstot atsauksmes' });
+  }
+};
 
-// Create a new review
+// Create a new review - updated to require questionId and check for existing reviews
 exports.createReview = async (req, res) => {
   const t = await sequelize.transaction();
   
   try {
-    const { rating, comment } = req.body;
+    const { rating, comment, questionId } = req.body;
     const userId = req.params.userId; // User being reviewed
     const reviewerId = req.user.id; // User creating the review
     
@@ -56,6 +60,11 @@ exports.createReview = async (req, res) => {
     if (!comment || comment.trim() === '') {
       await t.rollback();
       return res.status(400).json({ message: 'Komentārs ir obligāts' });
+    }
+
+    if (!questionId) {
+      await t.rollback();
+      return res.status(400).json({ message: 'Jautājuma ID ir obligāts' });
     }
     
     // Check if user exists
@@ -70,12 +79,26 @@ exports.createReview = async (req, res) => {
       await t.rollback();
       return res.status(400).json({ message: 'Nevar vērtēt pats sevi' });
     }
+
+    // Verify the question exists
+    const question = await Question.findByPk(questionId);
+    if (!question) {
+      await t.rollback();
+      return res.status(404).json({ message: 'Jautājums nav atrasts' });
+    }
+
+    // Verify the reviewer is the question author
+    if (question.userId !== reviewerId) {
+      await t.rollback();
+      return res.status(403).json({ message: 'Tikai jautājuma autors var atstāt atsauksmi' });
+    }
     
-    // Check if user already left a review for this user
+    // Check if user already left a review for this user for this question
     const existingReview = await Review.findOne({
       where: {
         userId,
-        reviewerId
+        reviewerId,
+        questionId
       }
     });
     
@@ -106,6 +129,10 @@ exports.createReview = async (req, res) => {
             model: User,
             as: 'Reviewer',
             attributes: ['id', 'username', 'profileImage', 'role']
+          },
+          {
+            model: Question,
+            attributes: ['id', 'title']
           }
         ]
       });
@@ -121,6 +148,7 @@ exports.createReview = async (req, res) => {
     const review = await Review.create({
       userId,
       reviewerId,
+      questionId,
       rating,
       comment
     }, { transaction: t });
@@ -145,6 +173,10 @@ exports.createReview = async (req, res) => {
           model: User,
           as: 'Reviewer',
           attributes: ['id', 'username', 'profileImage', 'role']
+        },
+        {
+          model: Question,
+          attributes: ['id', 'title']
         }
       ]
     });

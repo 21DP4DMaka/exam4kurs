@@ -258,36 +258,52 @@ function UserProfilePage({ profileUserId, currentUser, setCurrentPage }) {
                     {reviews.length === 0 ? (
                       <p className="empty-state">Šim lietotājam vēl nav atsauksmju.</p>
                     ) : (
-                        <div className="reviews-container">
-                        {reviews.map((review) => (
-                          <div key={review.id} className="review-item">
-                            <div className="review-header">
-                              <div className="reviewer-info">
-                                <span className="reviewer-name">
-                                  {review.Reviewer ? review.Reviewer.username : 'Nezināms lietotājs'}
-                                </span>
-                                <span className="review-date">{formatDate(review.createdAt)}</span>
-                              </div>
-                              <div className="review-rating">
-                                {[1, 2, 3, 4, 5].map((star) => (
-                                  <span 
-                                    key={star} 
-                                    style={{ 
-                                      color: star <= review.rating ? '#f59e0b' : '#e2e8f0',
-                                      fontSize: '1.2rem'
-                                    }}
-                                  >
-                                    {star <= review.rating ? '★' : '☆'}
-                                  </span>
-                                ))}
-                              </div>
+                      <div className="reviews-container">
+                      {reviews.map((review) => (
+                        <div key={review.id} className="review-item">
+                          <div className="review-header">
+                            <div className="reviewer-info">
+                              <span className="reviewer-name">
+                                {review.Reviewer ? review.Reviewer.username : 'Nezināms lietotājs'}
+                              </span>
+                              <span className="review-date">{formatDate(review.createdAt)}</span>
                             </div>
-                            <div className="review-content">
-                              {truncateText(review.comment, 50)}
+                            <div className="review-rating">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <span 
+                                  key={star} 
+                                  style={{ 
+                                    color: star <= review.rating ? '#f59e0b' : '#e2e8f0',
+                                    fontSize: '1.2rem'
+                                  }}
+                                >
+                                  {star <= review.rating ? '★' : '☆'}
+                                </span>
+                              ))}
                             </div>
                           </div>
-                        ))}
-                      </div>
+                          <div className="review-content">
+                            {review.comment}
+                          </div>
+                          {/* Display associated question with link */}
+                          {review.Question && (
+                            <div className="review-question">
+                              <span>Jautājums: </span>
+                              <a 
+                                href="#" 
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  setCurrentPage('question-view', review.Question.id);
+                                }}
+                                className="question-link"
+                              >
+                                {review.Question.title}
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                     )}
                   </div>
                 </div>

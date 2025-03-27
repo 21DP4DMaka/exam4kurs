@@ -97,13 +97,16 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
     setTargetUser(answerUser);
     setShowReviewModal(true);
   };
+  
 
   // Handle submitting a review
   const handleSubmitReview = async (reviewData) => {
     try {
+      // Include the questionId in the review data
       await userService.createUserReview(reviewData.userId, {
         rating: reviewData.rating,
-        comment: reviewData.comment
+        comment: reviewData.comment,
+        questionId: questionId // Use the current question ID
       });
       
       setSubmitSuccess('Review submitted successfully!');
@@ -117,6 +120,7 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
       setSubmitError('Error submitting review. Please try again.');
     }
   };
+  
   
   // Handle submitting an answer
   const handleSubmitAnswer = async (e) => {
@@ -539,11 +543,13 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
       
       {/* Review Modal */}
       <ReviewModal
-        isOpen={showReviewModal}
-        onClose={() => setShowReviewModal(false)}
-        onSubmit={handleSubmitReview}
-        targetUser={targetUser || {}}
-      />
+  isOpen={showReviewModal}
+  onClose={() => setShowReviewModal(false)}
+  onSubmit={handleSubmitReview}
+  targetUser={targetUser || {}}
+  questionId={questionId}
+  questionTitle={question.title}
+/>
     </div>
   );
 }
