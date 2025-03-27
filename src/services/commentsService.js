@@ -3,6 +3,11 @@ import apiClient from './api';
 export const commentsService = {
     // Get comments for an answer - Using the proper endpoint path
     getComments: (answerId) => {
+      if (!answerId) {
+        console.error('No answerId provided to getComments service');
+        return Promise.reject(new Error('answerId is required'));
+      }
+      
       console.log(`Calling API to get comments for answerId: ${answerId}`);
       return apiClient.get(`/answers/${answerId}/comments`);
     },

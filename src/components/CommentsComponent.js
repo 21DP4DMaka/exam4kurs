@@ -10,7 +10,7 @@ const CommentsComponent = ({ questionId, answerId, currentUser, commentsService 
   const [newComment, setNewComment] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [debugMode, setDebugMode] = useState(true); // Set to false in production
+  const [debugMode, setDebugMode] = useState(true); // Keep this true for debugging
 
   // Load comments
   useEffect(() => {
@@ -116,22 +116,31 @@ const CommentsComponent = ({ questionId, answerId, currentUser, commentsService 
     }
   };
 
-  // Check if user can comment
+  // Check if user can comment - FIXED VERSION
   const canComment = () => {
     if (!currentUser) return false;
     
-    const isQuestionAuthor = currentUser.id === commentContext.questionAuthorId;
-    const isAnswerAuthor = currentUser.id === commentContext.answerAuthorId;
+    // Make sure we have integer IDs for comparison
+    const currentUserId = parseInt(currentUser.id);
+    const questionAuthorId = parseInt(commentContext.questionAuthorId);
+    const answerAuthorId = parseInt(commentContext.answerAuthorId);
+    
+    const isQuestionAuthor = currentUserId === questionAuthorId;
+    const isAnswerAuthor = currentUserId === answerAuthorId;
     
     if (debugMode) {
       console.log('Permission check:', {
-        currentUserId: currentUser.id,
-        questionAuthorId: commentContext.questionAuthorId,
-        answerAuthorId: commentContext.answerAuthorId,
+        currentUserId,
+        questionAuthorId,
+        answerAuthorId,
         isQuestionAuthor,
-        isAnswerAuthor
+        isAnswerAuthor,
+        canComment: isQuestionAuthor || isAnswerAuthor
       });
     }
+    
+    // For debugging, you can temporarily allow all users to comment by returning true
+    // return true;
     
     // The question author and the answer author can always comment
     return isQuestionAuthor || isAnswerAuthor;

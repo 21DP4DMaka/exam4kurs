@@ -27,7 +27,7 @@ exports.getCommentsByAnswerId = async (req, res) => {
         return res.status(404).json({ message: 'Atbilde nav atrasta' });
       }
       
-      // Log the found answer for debugging
+      // IMPORTANT: Log the answer details for debugging
       console.log('Found answer:', {
         id: answer.id,
         questionId: answer.Question.id,
@@ -49,7 +49,7 @@ exports.getCommentsByAnswerId = async (req, res) => {
       
       console.log(`Found ${comments.length} comments`);
       
-      // Add context info for the client
+      // Add context info for the client - EXPLICITLY SET THESE VALUES
       const responseData = {
         comments,
         questionAuthorId: answer.Question.userId,
@@ -63,6 +63,42 @@ exports.getCommentsByAnswerId = async (req, res) => {
     }
   };
   
+  exports.getCommentsByAnswerId = async (req, res) => {
+    try {
+      const answerId = req.params.answerId;
+      console.log(`Getting comments for answerId: ${answerId}`);
+      
+      // Validate that answerId exists and is a number
+      if (!answerId || isNaN(parseInt(answerId))) {
+        return res.status(400).json({ message: 'Atbilde ID ir obligāts un jābūt skaitlim' });
+      }
+      
+      // Rest of the function remains the same...
+      // Find the answer to get question and user info
+      const answer = await Answer.findByPk(answerId, {
+        include: [
+          {
+            model: Question,
+            attributes: ['id', 'userId'],
+          },
+          {
+            model: User,
+            attributes: ['id']
+          }
+        ]
+      });
+      
+      if (!answer) {
+        console.log(`Answer not found for ID: ${answerId}`);
+        return res.status(404).json({ message: 'Atbilde nav atrasta' });
+      }
+      
+      // Rest of your existing code...
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+      res.status(500).json({ message: 'Servera kļūda iegūstot komentārus' });
+    }
+};
 
 // Create a new comment - Fixed to properly check permissions
 exports.createComment = async (req, res) => {

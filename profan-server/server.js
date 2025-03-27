@@ -1,4 +1,4 @@
-// profan-server/server.js (Update this file to add new routes)
+// profan-server/server.js (Update this file to fix the route error)
 const express = require('express');
 const cors = require('cors');
 const { sequelize } = require('./models');
@@ -14,9 +14,9 @@ const tagRoutes = require('./routes/tags');
 const userRoutes = require('./routes/users');
 const tagApplicationRoutes = require('./routes/tagApplication');
 const reviewRoutes = require('./routes/reviews');
-const commentRoutes = require('./routes/comments'); // Make sure this is imported
+const commentRoutes = require('./routes/comments'); // This exists and works correctly
 const attachmentRoutes = require('./routes/attachments');
-const answerCommentsRoutes = require('./routes/answerComments');
+// Remove the line importing answerCommentsRoutes as it doesn't exist
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -37,7 +37,7 @@ app.use('/api/tags', tagRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/tag-applications', tagApplicationRoutes);
 app.use('/api/reviews', reviewRoutes);
-app.use('/api/answers/:answerId/comments', commentRoutes);  // This line is missing
+app.use('/api/answers', commentRoutes);   // Use the existing commentRoutes here
 app.use('/api/comments', commentRoutes);
 app.use('/api', attachmentRoutes);
 
