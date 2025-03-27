@@ -10,7 +10,8 @@ const CommentsComponent = ({ questionId, answerId, currentUser, commentsService 
   const [newComment, setNewComment] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [debugMode, setDebugMode] = useState(true); // Set to true temporarily to help debug issues
+  // Set debugMode to false in production
+  const debugMode = false;
 
   // Load comments
   useEffect(() => {
@@ -31,21 +32,26 @@ const CommentsComponent = ({ questionId, answerId, currentUser, commentsService 
         
         if (debugMode) console.log('Comments API response:', response);
         
-        // Extract comments and author IDs from response
-        const { comments: commentsList = [], questionAuthorId, answerAuthorId } = response.data;
-        
-        setComments(commentsList || []);
-        setCommentContext({
-          questionAuthorId,
-          answerAuthorId
-        });
-        
-        if (debugMode) {
-          console.log('Set comment context:', {
-            questionAuthorId,
-            answerAuthorId,
-            commentsCount: commentsList?.length || 0
+        // Safely extract data from response
+        if (response && response.data) {
+          const { comments: commentsList = [], questionAuthorId, answerAuthorId } = response.data;
+          
+          // Convert IDs to numbers for consistent comparison
+          setCommentContext({
+            questionAuthorId: questionAuthorId ? Number(questionAuthorId) : null,
+            answerAuthorId: answerAuthorId ? Number(answerAuthorId) : null
           });
+          
+          setComments(commentsList || []);
+          
+          if (debugMode) {
+            console.log('Set comment context:', {
+              questionAuthorId: Number(questionAuthorId),
+              answerAuthorId: Number(answerAuthorId),
+              commentsCount: commentsList?.length || 0,
+              currentUserId: currentUser ? Number(currentUser.id) : null
+            });
+          }
         }
       } catch (err) {
         console.error('Failed to load comments:', err);
@@ -65,7 +71,7 @@ const CommentsComponent = ({ questionId, answerId, currentUser, commentsService 
     };
     
     fetchComments();
-  }, [answerId, commentsService, debugMode]);
+  }, [answerId, commentsService, debugMode, currentUser]);
 
   // Submit a new comment
   const handleSubmitComment = async (e) => {
@@ -116,21 +122,14 @@ const CommentsComponent = ({ questionId, answerId, currentUser, commentsService 
     }
   };
 
-  // Check if user can comment - ROBUST FIXED VERSION
+  // Check if user can comment
   const canComment = () => {
     if (!currentUser) return false;
     
-    // Safe parsing function to handle null, undefined, or non-numeric strings
-    const safeParseInt = (val) => {
-      if (val === null || val === undefined) return null;
-      const parsed = parseInt(val);
-      return isNaN(parsed) ? null : parsed;
-    };
-    
-    // Safely parse all IDs to integers or null
-    const currentUserId = safeParseInt(currentUser.id);
-    const questionAuthorId = safeParseInt(commentContext.questionAuthorId);
-    const answerAuthorId = safeParseInt(commentContext.answerAuthorId);
+    // Parse the IDs as numbers for consistency
+    const currentUserId = Number(currentUser.id);
+    const questionAuthorId = Number(commentContext.questionAuthorId);
+    const answerAuthorId = Number(commentContext.answerAuthorId);
     
     if (debugMode) {
       console.log('Permission check:', {
@@ -142,9 +141,8 @@ const CommentsComponent = ({ questionId, answerId, currentUser, commentsService 
       });
     }
     
-    // Only return true if we have valid IDs and they match
-    return (currentUserId !== null && questionAuthorId !== null && currentUserId === questionAuthorId) ||
-           (currentUserId !== null && answerAuthorId !== null && currentUserId === answerAuthorId);
+    // Check if current user is either question author or answer author
+    return (currentUserId === questionAuthorId) || (currentUserId === answerAuthorId);
   };
 
   // Format date
@@ -170,7 +168,7 @@ const CommentsComponent = ({ questionId, answerId, currentUser, commentsService 
           <details>
             <summary>Debug Info</summary>
             <pre>{JSON.stringify({
-              currentUser: currentUser ? { id: currentUser.id, role: currentUser.role } : null,
+              currentUser: currentUser ? { id: Number(currentUser.id), role: currentUser.role } : null,
               commentContext,
               canComment: currentUser ? canComment() : false,
               answerId,
@@ -192,10 +190,10 @@ const CommentsComponent = ({ questionId, answerId, currentUser, commentsService 
               <div className="comment-header">
                 <div className="comment-author">
                   <span className="author-name">{comment.User ? comment.User.username : 'Nezināms lietotājs'}</span>
-                  {comment.User && comment.User.id === parseInt(commentContext.questionAuthorId) && (
+                  {comment.User && Number(comment.User.id) === Number(commentContext.questionAuthorId) && (
                     <span className="author-badge question-author">Jautātājs</span>
                   )}
-                  {comment.User && comment.User.id === parseInt(commentContext.answerAuthorId) && (
+                  {comment.User && Number(comment.User.id) === Number(commentContext.answerAuthorId) && (
                     <span className="author-badge answer-author">Atbildētājs</span>
                   )}
                 </div>

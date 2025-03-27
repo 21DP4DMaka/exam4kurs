@@ -1,7 +1,7 @@
 const { Comment, User, Answer, Question, Notification, sequelize } = require('../models');
 const { Op } = require('sequelize');
 
-// Get comments for an answer - Fixed to include proper author IDs
+// Get comments for an answer
 exports.getCommentsByAnswerId = async (req, res) => {
   try {
     const answerId = req.params.answerId;
@@ -67,14 +67,14 @@ exports.getCommentsByAnswerId = async (req, res) => {
   }
 };
 
-// Create a new comment - Fixed to properly check permissions
+// Create a new comment
 exports.createComment = async (req, res) => {
   const t = await sequelize.transaction();
   
   try {
     const { answerId, questionId, content } = req.body;
     
-    // ИСПРАВЛЕНИЕ: Проверка существования req.user
+    // Check for user authentication
     if (!req.user || !req.user.id) {
       await t.rollback();
       return res.status(401).json({ message: 'Lietotājs nav autorizēts' });
@@ -90,8 +90,9 @@ exports.createComment = async (req, res) => {
       return res.status(400).json({ message: 'Atbildes ID, jautājuma ID un komentāra saturs ir obligāts' });
     }
     
-    // Check if answer exists
-    const answer = await Answer.findByPk(answerId, {
+    // Check if answer exists and belongs to the specified question
+    const answer = await Answer.findOne({
+      where: { id: answerId },
       include: [
         {
           model: Question,
@@ -106,27 +107,21 @@ exports.createComment = async (req, res) => {
       return res.status(404).json({ message: 'Atbilde vai jautājums nav atrasts' });
     }
     
-    // ИСПРАВЛЕНИЕ: Проверка на null значения перед использованием
-    const questionAuthorId = answer.Question ? answer.Question.userId : null;
+    // Get question author ID and answer author ID for permission check
+    const questionAuthorId = answer.Question.userId;
     const answerAuthorId = answer.userId;
     
-    // Log permission check information
+    // Log for debugging
     console.log('Permission check:', {
-      userId,
+      currentUserId: userId,
       questionAuthorId,
       answerAuthorId,
-      isQuestionAuthor: questionAuthorId !== null && userId === questionAuthorId,
-      isAnswerAuthor: answerAuthorId !== null && userId === answerAuthorId
+      isQuestionAuthor: Number(userId) === Number(questionAuthorId),
+      isAnswerAuthor: Number(userId) === Number(answerAuthorId)
     });
     
-    // Convert IDs to numbers for comparison
-    const currentUserId = parseInt(userId);
-    const qAuthorId = questionAuthorId !== null ? parseInt(questionAuthorId) : null;
-    const aAuthorId = answerAuthorId !== null ? parseInt(answerAuthorId) : null;
-    
     // Only question author and answer author can comment
-    if ((qAuthorId === null || currentUserId !== qAuthorId) && 
-        (aAuthorId === null || currentUserId !== aAuthorId)) {
+    if (Number(userId) !== Number(questionAuthorId) && Number(userId) !== Number(answerAuthorId)) {
       await t.rollback();
       return res.status(403).json({ 
         message: 'Tikai jautājuma autors vai atbildes autors var pievienot komentārus' 
@@ -142,24 +137,21 @@ exports.createComment = async (req, res) => {
     }, { transaction: t });
     
     // Create a notification for the recipient
-    // ИСПРАВЛЕНИЕ: Проверка, чтобы избежать undefined
-    if (answer.userId && questionAuthorId) {
-      const recipientId = currentUserId === answer.userId ? questionAuthorId : answer.userId;
-      
-      // ИСПРАВЛЕНИЕ: Проверка username
-      const username = req.user.username || 'Lietotājs';
-      const questionTitle = answer.Question && answer.Question.title 
-        ? answer.Question.title.substring(0, 50)
-        : 'jautājumu';
-      
-      await Notification.create({
-        userId: recipientId,
-        content: `Jauns komentārs no ${username} uz jautājumu "${questionTitle}..."`,
-        type: 'comment',
-        relatedQuestionId: questionId,
-        isRead: false
-      }, { transaction: t });
-    }
+    // If current user is answer author, notify question author, and vice versa
+    const recipientId = Number(userId) === Number(answerAuthorId) ? questionAuthorId : answerAuthorId;
+    
+    const username = req.user.username || 'Lietotājs';
+    const questionTitle = answer.Question.title 
+      ? answer.Question.title.substring(0, 50)
+      : 'jautājumu';
+    
+    await Notification.create({
+      userId: recipientId,
+      content: `Jauns komentārs no ${username} uz jautājumu "${questionTitle}..."`,
+      type: 'comment',
+      relatedQuestionId: questionId,
+      isRead: false
+    }, { transaction: t });
     
     await t.commit();
     
@@ -184,7 +176,6 @@ exports.createComment = async (req, res) => {
   }
 };
 
-// Rest of the controller code remains the same...
 // Update a comment (only the creator can update)
 exports.updateComment = async (req, res) => {
   const t = await sequelize.transaction();
@@ -208,7 +199,7 @@ exports.updateComment = async (req, res) => {
     }
     
     // Check if user is the creator
-    if (comment.userId !== userId) {
+    if (Number(comment.userId) !== Number(userId)) {
       await t.rollback();
       return res.status(403).json({ message: 'Jūs varat rediģēt tikai savus komentārus' });
     }
@@ -246,7 +237,7 @@ exports.deleteComment = async (req, res) => {
     }
     
     // Check if user is the creator or admin
-    if (comment.userId !== userId && req.user.role !== 'admin') {
+    if (Number(comment.userId) !== Number(userId) && req.user.role !== 'admin') {
       await t.rollback();
       return res.status(403).json({ message: 'Jums nav tiesību dzēst šo komentāru' });
     }

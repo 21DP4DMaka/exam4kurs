@@ -1,7 +1,7 @@
 import apiClient from './api';
 
 export const commentsService = {
-    // Get comments for an answer - Using the proper endpoint path
+    // Get comments for an answer - Fixed URL to match server route
     getComments: (answerId) => {
       if (!answerId) {
         console.error('No answerId provided to getComments service');
@@ -9,6 +9,7 @@ export const commentsService = {
       }
       
       console.log(`Calling API to get comments for answerId: ${answerId}`);
+      // The endpoint must match what's configured on the server
       return apiClient.get(`/answers/${answerId}/comments`);
     },
     

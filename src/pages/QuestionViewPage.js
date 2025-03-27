@@ -310,13 +310,13 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
       <div className="container">
         <div className="question-navigation">
           <button className="btn btn-outline back-btn" onClick={navigateToQuestions}>
-            &larr; Back to Questions
+            &larr; Atpakaļ uz jautājumiem
           </button>
           
           <div className={`question-status status-${question.status}`}>
-            {question.status === 'open' ? 'Open' : 
-             question.status === 'answered' ? 'Answered' : 
-             'Closed'}
+            {question.status === 'open' ? 'Atvērts' : 
+             question.status === 'answered' ? 'Atbildēts' : 
+             'Slēgts'}
           </div>
         </div>
         
@@ -338,7 +338,7 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
               >
                 {question.User ? question.User.username : 'Unknown User'}
               </span>
-              <span className="post-date">asked on {formatDate(question.createdAt)}</span>
+              <span className="post-date">tika jautāts {formatDate(question.createdAt)}</span>
             </div>
                     
             <div className="question-actions">
@@ -357,7 +357,7 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
                   className="btn btn-sm btn-outline"
                   onClick={() => setShowReportModal(true)}
                 >
-                  Report
+                  Ziņot
                 </button>
               )}
             </div>
@@ -384,12 +384,12 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
         
         <div className="answers-container">
           <h2 className="answers-title">
-            {answers.length} {answers.length === 1 ? 'Answer' : 'Answers'}
+            {answers.length} {answers.length === 1 ? 'Atbilde' : 'Atbilžu'}
           </h2>
           
           {answers.length === 0 ? (
             <div className="no-answers">
-              <p>No answers yet. Be the first to answer!</p>
+              <p>Atbilžu vēl nav. Esi pirmais, kas atbild!</p>
             </div>
           ) : (
             <div className="answers-list">
@@ -398,7 +398,7 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
                   {answer.isAccepted && (
                     <div className="accepted-badge">
                       <span className="accepted-icon">✓</span>
-                      <span>Accepted Answer</span>
+                      <span>Pieņemta atbilde</span>
                     </div>
                   )}
                   
@@ -431,11 +431,11 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
                       </span>
                       {answer.User && answer.User.role && (
                         <span className={`author-badge ${answer.User.role === 'power' ? 'professional' : answer.User.role === 'admin' ? 'admin' : ''}`}>
-                          {answer.User.role === 'power' ? 'Professional' : 
+                          {answer.User.role === 'power' ? 'Profesionāls' : 
                            answer.User.role === 'admin' ? 'Administrator' : ''}
                         </span>
                       )}
-                      <span className="answer-date">answered {formatDate(answer.createdAt)}</span>
+                      <span className="answer-date">atbildēja {formatDate(answer.createdAt)}</span>
                     </div>
                     
                     <div className="answer-actions">
@@ -493,7 +493,7 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
           
           {question.status !== 'closed' && (
             <div className="post-answer">
-              <h3>Your Answer</h3>
+              <h3>Jūsu atbilde</h3>
               
               {!user ? (
                 <div className="login-required">
@@ -504,7 +504,7 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
                 </div>
               ) : !canAnswer ? (
                 <div className="permission-required">
-                  <p>Only professionals with matching category tags can answer this question.</p>
+                  <p>Uz šo jautājumu var atbildēt tikai profesionāļi ar atbilstošu tagu.</p>
                 </div>
               ) : (
                 <form onSubmit={handleSubmitAnswer}>

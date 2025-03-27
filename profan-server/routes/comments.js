@@ -1,14 +1,22 @@
+
 const express = require('express');
 const router = express.Router();
 const commentController = require('../controllers/commentController');
 const { authenticateToken } = require('../middleware/auth');
 
-// This specific route should work with the route prefix
-router.get('/:answerId/comments', commentController.getCommentsByAnswerId) // This will match /api/answers/:answerId/comments
+// All routes should use authentication
+router.use(authenticateToken);
 
-// The rest of your routes...
+// GET comments for an answer - with the correct endpoint format
+router.get('/:answerId/comments', commentController.getCommentsByAnswerId)  
+
+// POST create a new comment
 router.post('/', commentController.createComment);
+
+// PUT update a comment
 router.put('/:id', commentController.updateComment);
+
+// DELETE delete a comment
 router.delete('/:id', commentController.deleteComment);
 
 module.exports = router;

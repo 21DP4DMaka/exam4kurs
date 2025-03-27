@@ -44,8 +44,8 @@ function Header({ isLoggedIn, user, onLogout, setCurrentPage }) {
                   onClick={(e) => handleNavigation('dashboard', e)}
                 >
                   {user ? user.username : 'Mans profils'}
-                  {user && user.role === 'admin' && <span className="role-badge admin">Admin</span>}
-                  {user && user.role === 'power' && <span className="role-badge power">Pro</span>}
+                  {user && user.role === 'admin' && <span className="role-badge admin">Admins</span>}
+                  {user && user.role === 'power' && <span className="role-badge power">Profesionāls</span>}
                   {user && user.role === 'regular' && <span className="role-badge regular">Lietotājs</span>}
                 </a>
                 
@@ -83,7 +83,7 @@ function Header({ isLoggedIn, user, onLogout, setCurrentPage }) {
                     className="btn btn-profils"
                     onClick={(e) => handleNavigation('professional-profile', e)}
                   >
-                    Pro Profils
+                    Profesionāla Profils
                   </button>
                 )}
                 
