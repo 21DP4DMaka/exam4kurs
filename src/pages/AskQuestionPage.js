@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { questionService, tagService } from '../services/api';
+import { questionService, tagService, questionAttachmentService } from '../services/api';
 import './AskQuestionPage.css';
+import FileUploadComponent from '../components/FileUploadComponent';
 
 function AskQuestionPage({ user, setCurrentPage }) {
   const [formData, setFormData] = useState({
@@ -8,13 +9,14 @@ function AskQuestionPage({ user, setCurrentPage }) {
     content: '',
     tags: []
   });
+  const [attachments, setAttachments] = useState([]);
   const [availableTags, setAvailableTags] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   
-  // Ielādēt tagus
+  // Load tags
   useEffect(() => {
     const fetchTags = async () => {
       try {
@@ -58,6 +60,10 @@ function AskQuestionPage({ user, setCurrentPage }) {
     }
   };
   
+  const handleFilesChange = (files) => {
+    setAttachments(files);
+  };
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -85,11 +91,39 @@ function AskQuestionPage({ user, setCurrentPage }) {
     setError(null);
     
     try {
-      const response = await questionService.createQuestion({
+      // Create the question first
+      const questionResponse = await questionService.createQuestion({
         title: formData.title,
         content: formData.content,
         tags: formData.tags
       });
+      
+      const questionId = questionResponse.data.question.id;
+      
+      // If there are attachments, upload them
+      if (attachments.length > 0) {
+        const attachmentFormData = new FormData();
+        attachments.forEach(file => {
+          attachmentFormData.append('files', file);
+        });
+        
+        try {
+          await questionAttachmentService.uploadAttachments(questionId, attachmentFormData);
+        } catch (attachmentError) {
+          console.error('Kļūda augšupielādējot pielikumus:', attachmentError);
+          setSuccess('Jautājums veiksmīgi izveidots, bet neizdevās augšupielādēt pielikumus.');
+          setFormData({
+            title: '',
+            content: '',
+            tags: []
+          });
+          setAttachments([]);
+          setTimeout(() => {
+            setCurrentPage('question-view', questionId);
+          }, 2000);
+          return;
+        }
+      }
       
       setSuccess('Jautājums veiksmīgi izveidots!');
       setFormData({
@@ -97,14 +131,11 @@ function AskQuestionPage({ user, setCurrentPage }) {
         content: '',
         tags: []
       });
+      setAttachments([]);
       
-      // Pēc 2 sekundēm novirzīt uz jautājuma skatu
+      // After 2 seconds, redirect to the question view
       setTimeout(() => {
-        if (response.data && response.data.question && response.data.question.id) {
-          // Ja izmantotu react-router, varētu izmantot history.push
-          // Šajā gadījumā izmantojam callback, lai atjauninātu skatu
-          window.location.href = `/questions/${response.data.question.id}`;
-        }
+        setCurrentPage('question-view', questionId);
       }, 2000);
     } catch (error) {
       console.error('Kļūda veidojot jautājumu:', error);
@@ -155,6 +186,7 @@ function AskQuestionPage({ user, setCurrentPage }) {
               <li>Sniedziet nepieciešamo kontekstu un informāciju</li>
               <li>Pārbaudiet pareizrakstību un gramatiku</li>
               <li>Izvēlieties atbilstošus tagus, lai jautājums nonāktu pie pareizajiem ekspertiem</li>
+              <li>Pievienojiet līdz 2 failiem (PDF vai PNG), ja nepieciešams</li>
             </ul>
           </div>
           
@@ -191,6 +223,14 @@ function AskQuestionPage({ user, setCurrentPage }) {
               <small className="form-text">
                 Detalizēti aprakstiet savu jautājumu, sniedzot visu nepieciešamo informāciju
               </small>
+            </div>
+            
+            <div className="form-group">
+              <label>Pielikumi (neobligāti)</label>
+              <FileUploadComponent 
+                onFilesChange={handleFilesChange}
+                maxFiles={2}
+              />
             </div>
             
             <div className="form-group">

@@ -286,6 +286,7 @@ function DashboardPage({ user: passedUser, setCurrentPage, handleViewQuestion })
                           {notification.type === 'system' && '🔔'}
                           {notification.type === 'rating' && '⭐'}
                           {notification.type === 'acceptance' && '✅'}
+                          {notification.type === 'question' && '❓'}
                         </div>
                         <div className="notification-content">
                           <p>{notification.content}</p>

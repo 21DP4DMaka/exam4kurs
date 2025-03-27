@@ -27,7 +27,7 @@ exports.getQuestions = async (req, res) => {
       };
     }
     
-    // Pievienot statusa filtru, ja tas ir norādīts
+    //  status filtrs
     if (status && status !== 'all') {
       whereConditions.status = status;
     }
@@ -55,7 +55,7 @@ exports.getQuestions = async (req, res) => {
     // Ja ir norādīti tagi, pievienojam tos vaicājumam
     if (tagIds.length > 0) {
       queryOptions.include[1].where = {
-        id: { [Op.in]: tagIds }
+        id: { [Op.in]: tagIds } 
       };
     }
     

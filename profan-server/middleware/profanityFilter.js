@@ -2,12 +2,11 @@
 
 // Simple profanity filter middleware
 const profanityFilter = (req, res, next) => {
-    // List of words to filter
+    
     const profanityList = [
       'badword1', 
       'badword2', 
-      'badword3'
-      // Add more words as needed
+      'badword3'  
     ];
   
     // Function to check content for profanity

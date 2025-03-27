@@ -3,7 +3,7 @@ import axios from 'axios';
 
 const API_URL = 'http://localhost:5000/api';
 
-// Axios instance с конфигурацией по умолчанию
+// Axios instance with default configuration
 const apiClient = axios.create({
   baseURL: API_URL,
   headers: {
@@ -11,7 +11,7 @@ const apiClient = axios.create({
   }
 });
 
-// Добавляем токен авторизации ко всем запросам, если он доступен
+// Add authorization token to all requests if available
 apiClient.interceptors.request.use(
   config => {
     const token = localStorage.getItem('token');
@@ -25,14 +25,14 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Auth сервисы
+// Auth services
 export const authService = {
   register: (userData) => apiClient.post('/auth/register', userData),
   login: (credentials) => apiClient.post('/auth/login', credentials),
   getCurrentUser: () => apiClient.get('/auth/me')
 };
 
-// Сервисы вопросов
+// Question services
 export const questionService = {
   getQuestions: (params) => apiClient.get('/questions', { params }),
   getQuestionById: (id) => apiClient.get(`/questions/${id}`),
@@ -45,30 +45,30 @@ export const questionService = {
   getUserQuestions: (userId) => apiClient.get(`/users/${userId}/questions`)
 };
 
-// Сервисы ответов
+// Answer services
 export const answerService = {
   createAnswer: (answerData) => apiClient.post('/answers', answerData),
   acceptAnswer: (id) => apiClient.patch(`/answers/${id}/accept`)
 };
 
-// Сервисы уведомлений
+// Notification services
 export const notificationService = {
   getNotifications: (params) => apiClient.get('/notifications', { params }),
   markAsRead: (id) => apiClient.patch(`/notifications/${id}/read`),
   markAllAsRead: () => apiClient.patch('/notifications/read-all')
 };
 
-// Сервисы тегов
+// Tag services
 export const tagService = {
   getTags: () => apiClient.get('/tags'),
   
-  // Получить профессиональные теги пользователя
+  // Get user professional tags
   getUserProfessionalTags: (userId) => apiClient.get(`/users/${userId}/professional-tags`),
   
-  // Получить теги профессионального профиля
+  // Get profile tags
   getProfileTags: (profileId) => apiClient.get(`/professional-profiles/${profileId}/tags`),
   
-  // Сервисы заявок на теги
+  // Tag application services
   getUserTagApplications: () => apiClient.get('/tag-applications/user'),
   getTagApplications: (params) => apiClient.get('/tag-applications', { params }),
   applyForTag: (formData) => {
@@ -102,3 +102,56 @@ export const userService = {
   createUserReview: (userId, reviewData) => apiClient.post(`/reviews/users/${userId}/reviews`, reviewData),
   updateUserProfile: (profileData) => apiClient.put('/users/profile', profileData)
 };
+
+// NEW: Question attachment services
+export const questionAttachmentService = {
+  // Upload attachments for a question
+  uploadAttachments: (questionId, formData) => {
+    const config = {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    };
+    return apiClient.post(`/questions/${questionId}/attachments`, formData, config);
+  },
+
+  // Get all attachments for a question
+  getAttachments: (questionId) => 
+    apiClient.get(`/questions/${questionId}/attachments`),
+
+  // Get a specific attachment
+  getAttachment: (attachmentId) => 
+    apiClient.get(`/attachments/${attachmentId}`),
+
+  // Delete an attachment (only creator or admin can delete)
+  deleteAttachment: (attachmentId) => 
+    apiClient.delete(`/attachments/${attachmentId}`),
+    
+  // Download an attachment
+  downloadAttachment: (attachmentId) => {
+    const token = localStorage.getItem('token');
+    return `${API_URL}/attachments/${attachmentId}/download?token=${token}`;
+  }
+};
+
+// NEW: Comments services for answer discussions
+export const commentsService = {
+  // Get comments for an answer
+  getComments: (answerId) => 
+    apiClient.get(`/answers/${answerId}/comments`),
+  
+  // Create a new comment
+  createComment: (commentData) => 
+    apiClient.post('/comments', commentData),
+  
+  // Update a comment (only creator can update)
+  updateComment: (commentId, updatedContent) => 
+    apiClient.put(`/comments/${commentId}`, { content: updatedContent }),
+  
+  // Delete a comment (only creator or admin can delete)
+  deleteComment: (commentId) => 
+    apiClient.delete(`/comments/${commentId}`)
+};
+
+export default apiClient;

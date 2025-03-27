@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { questionService, answerService, userService, tagService } from '../services/api';
+import { questionService, answerService, userService, tagService, questionAttachmentService, commentsService } from '../services/api';
 import './QuestionViewPage.css';
 import ReportModal from '../components/ReportModal';
 import ReviewModal from '../components/ReviewModal';
+import AttachmentsViewer from '../components/AttachmentsViewer';
+import CommentsComponent from '../components/CommentsComponent';
 
 function QuestionViewPage({ questionId, user, setCurrentPage }) {
   const [question, setQuestion] = useState(null);
   const [answers, setAnswers] = useState([]);
+  const [attachments, setAttachments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [answerContent, setAnswerContent] = useState('');
@@ -20,7 +23,7 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [targetUser, setTargetUser] = useState(null);
   
-  // Ielādēt jautājuma datus
+  // Load question data and attachments
   useEffect(() => {
     const fetchQuestionData = async () => {
       try {
@@ -29,7 +32,7 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
         setQuestion(response.data);
         
         if (response.data.Answers) {
-          // Sakārtot atbildes - vispirms pieņemtās, tad pēc datuma
+          // Sort answers - accepted first, then by date
           const sortedAnswers = [...response.data.Answers].sort((a, b) => {
             if (a.isAccepted && !b.isAccepted) return -1;
             if (!a.isAccepted && b.isAccepted) return 1;
@@ -38,9 +41,17 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
           
           setAnswers(sortedAnswers);
         }
+        
+        // Fetch attachments for the question
+        try {
+          const attachmentsResponse = await questionAttachmentService.getAttachments(questionId);
+          setAttachments(attachmentsResponse.data || []);
+        } catch (attachmentError) {
+          console.error('Error fetching attachments:', attachmentError);
+        }
       } catch (error) {
-        console.error('Kļūda ielādējot jautājumu:', error);
-        setError('Kļūda ielādējot jautājumu. Lūdzu, mēģiniet vēlreiz.');
+        console.error('Error loading question:', error);
+        setError('Error loading question. Please try again.');
       } finally {
         setIsLoading(false);
       }
@@ -51,7 +62,7 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
     }
   }, [questionId]);
   
-  // Ielādēt lietotāja tagus, ja ir profesionālis
+  // Load user tags if they are a professional
   useEffect(() => {
     const fetchUserTags = async () => {
       if (user && (user.role === 'power' || user.role === 'admin')) {
@@ -59,7 +70,7 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
           const response = await tagService.getUserProfessionalTags(user.id);
           setUserTags(response.data);
         } catch (error) {
-          console.error('Kļūda ielādējot lietotāja tagus:', error);
+          console.error('Error loading user tags:', error);
         }
       }
     };
@@ -67,10 +78,10 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
     fetchUserTags();
   }, [user]);
   
-  // Pārbaudīt, vai lietotājs var atbildēt uz jautājumu
+  // Check if user can answer the question
   useEffect(() => {
     if (user && question && (user.role === 'power' || user.role === 'admin') && userTags.length > 0) {
-      // Pārbaudīt, vai lietotājam ir kāds tags, kas sakrīt ar jautājuma tagiem
+      // Check if user has any tag that matches question tags
       const questionTagIds = question.Tags.map(tag => tag.id);
       const userTagIds = userTags.map(tag => tag.id);
       
@@ -95,34 +106,34 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
         comment: reviewData.comment
       });
       
-      setSubmitSuccess('Atsauksme veiksmīgi iesniegta!');
+      setSubmitSuccess('Review submitted successfully!');
       
       // Auto-hide success message after 3 seconds
       setTimeout(() => {
         setSubmitSuccess(null);
       }, 3000);
     } catch (error) {
-      console.error('Kļūda iesniedzot atsauksmi:', error);
-      setSubmitError('Kļūda iesniedzot atsauksmi. Lūdzu, mēģiniet vēlreiz.');
+      console.error('Error submitting review:', error);
+      setSubmitError('Error submitting review. Please try again.');
     }
   };
   
-  // Atbildes iesniegšana
+  // Handle submitting an answer
   const handleSubmitAnswer = async (e) => {
     e.preventDefault();
     
     if (!user) {
-      setSubmitError('Lai atbildētu, jums jāpieslēdzas.');
+      setSubmitError('Please log in to answer.');
       return;
     }
     
     if (!canAnswer) {
-      setSubmitError('Jums nav atbilstošo kategoriju, lai atbildētu uz šo jautājumu.');
+      setSubmitError('You don\'t have the appropriate tags to answer this question.');
       return;
     }
     
     if (!answerContent.trim()) {
-      setSubmitError('Lūdzu, ievadiet atbildes saturu.');
+      setSubmitError('Please enter answer content.');
       return;
     }
     
@@ -135,15 +146,15 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
         content: answerContent
       });
       
-      setSubmitSuccess('Atbilde veiksmīgi pievienota!');
+      setSubmitSuccess('Answer added successfully!');
       setAnswerContent('');
       
-      // Pievienot jauno atbildi atbilžu sarakstam
+      // Add the new answer to the answers list
       if (response.data && response.data.answer) {
         setAnswers([response.data.answer, ...answers]);
       }
       
-      // Atjaunināt jautājuma statusu, ja tas mainījies
+      // Update question status if it changed
       if (question.status === 'open') {
         setQuestion({
           ...question,
@@ -151,38 +162,38 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
         });
       }
       
-      // Pēc 3 sekundēm noņemt veiksmīgo ziņojumu
+      // Remove success message after 3 seconds
       setTimeout(() => {
         setSubmitSuccess(null);
       }, 3000);
     } catch (error) {
-      console.error('Kļūda iesniedzot atbildi:', error);
+      console.error('Error submitting answer:', error);
       if (error.response && error.response.data && error.response.data.message) {
         setSubmitError(error.response.data.message);
       } else {
-        setSubmitError('Kļūda iesniedzot atbildi. Lūdzu, mēģiniet vēlreiz.');
+        setSubmitError('Error submitting answer. Please try again.');
       }
     } finally {
       setIsSubmitting(false);
     }
   };
   
-  // Pieņemt atbildi (ja lietotājs ir jautājuma autors)
+  // Accept an answer (if user is question author)
   const handleAcceptAnswer = async (answerId) => {
     if (!user) {
-      setError('Lai pieņemtu atbildi, jums jāpieslēdzas.');
+      setError('Please log in to accept an answer.');
       return;
     }
     
     if (!question || user.id !== question.userId) {
-      setError('Tikai jautājuma autors var pieņemt atbildi.');
+      setError('Only the question author can accept an answer.');
       return;
     }
     
     try {
       await answerService.acceptAnswer(answerId);
       
-      // Atjaunināt atbilžu statusu
+      // Update answers status
       const updatedAnswers = answers.map(answer => ({
         ...answer,
         isAccepted: answer.id === answerId
@@ -190,30 +201,30 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
       
       setAnswers(updatedAnswers);
       
-      // Atjaunināt jautājuma statusu
+      // Update question status
       setQuestion({
         ...question,
         status: 'closed'
       });
       
-      setSubmitSuccess('Atbilde veiksmīgi pieņemta kā risinājums!');
+      setSubmitSuccess('Answer accepted as solution!');
       
-      // Pēc 3 sekundēm noņemt veiksmīgo ziņojumu
+      // Remove success message after 3 seconds
       setTimeout(() => {
         setSubmitSuccess(null);
       }, 3000);
     } catch (error) {
-      console.error('Kļūda pieņemot atbildi:', error);
-      setError('Kļūda pieņemot atbildi. Lūdzu, mēģiniet vēlreiz.');
+      console.error('Error accepting answer:', error);
+      setError('Error accepting answer. Please try again.');
     }
   };
   
-  // Navigēt atpakaļ uz jautājumu sarakstu
+  // Navigate back to questions list
   const navigateToQuestions = () => {
     setCurrentPage('questions');
   };
   
-  // Navigēt uz pieteikšanas lapu
+  // Navigate to login page
   const navigateToLogin = () => {
     setCurrentPage('login');
   };
@@ -222,26 +233,26 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
   const handleReportQuestion = async (reason) => {
     try {
       await questionService.reportQuestion(questionId, { reason });
-      setSubmitSuccess('Ziņojums veiksmīgi iesniegts! Paldies par jūsu ieguldījumu platformas uzturēšanā.');
+      setSubmitSuccess('Report submitted successfully! Thank you for your contribution.');
       
       // Auto-hide success message after 3 seconds
       setTimeout(() => {
         setSubmitSuccess(null);
       }, 3000);
     } catch (error) {
-      console.error('Kļūda iesniedzot ziņojumu:', error);
-      setSubmitError('Kļūda iesniedzot ziņojumu. Lūdzu, mēģiniet vēlreiz.');
+      console.error('Error submitting report:', error);
+      setSubmitError('Error submitting report. Please try again.');
     }
   };
 
   // Handle deleting a question (admin only)
   const handleDeleteQuestion = async () => {
     if (!user || user.role !== 'admin') {
-      setError('Tikai administratori var dzēst jautājumus');
+      setError('Only administrators can delete questions');
       return;
     }
     
-    if (!window.confirm('Vai tiešām vēlaties dzēst šo jautājumu? Šo darbību nevar atsaukt.')) {
+    if (!window.confirm('Are you sure you want to delete this question? This action cannot be undone.')) {
       return;
     }
     
@@ -252,13 +263,13 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
       // Return to questions page after successful deletion
       setCurrentPage('questions');
     } catch (error) {
-      console.error('Kļūda dzēšot jautājumu:', error);
-      setError('Kļūda dzēšot jautājumu. Lūdzu, mēģiniet vēlreiz.');
+      console.error('Error deleting question:', error);
+      setError('Error deleting question. Please try again.');
       setIsDeleting(false);
     }
   };
   
-  // Formatē datumu
+  // Format date
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
     return new Date(dateString).toLocaleDateString('lv-LV', options);
@@ -268,7 +279,7 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
     return (
       <div className="question-view-page">
         <div className="container">
-          <div className="loading-message">Ielāde...</div>
+          <div className="loading-message">Loading...</div>
         </div>
       </div>
     );
@@ -279,10 +290,10 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
       <div className="question-view-page">
         <div className="container">
           <div className="error-container">
-            <h2>Kļūda</h2>
-            <p>{error || 'Jautājums nav atrasts.'}</p>
+            <h2>Error</h2>
+            <p>{error || 'Question not found.'}</p>
             <button className="btn btn-primary" onClick={navigateToQuestions}>
-              Atgriezties pie jautājumiem
+              Return to Questions
             </button>
           </div>
         </div>
@@ -295,36 +306,36 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
       <div className="container">
         <div className="question-navigation">
           <button className="btn btn-outline back-btn" onClick={navigateToQuestions}>
-            &larr; Atpakaļ pie jautājumiem
+            &larr; Back to Questions
           </button>
           
           <div className={`question-status status-${question.status}`}>
-            {question.status === 'open' ? 'Atvērts' : 
-             question.status === 'answered' ? 'Atbildēts' : 
-             'Slēgts'}
+            {question.status === 'open' ? 'Open' : 
+             question.status === 'answered' ? 'Answered' : 
+             'Closed'}
           </div>
         </div>
         
         <div className="question-container">
           <h1 className="question-title">{question.title}</h1>
           
-        <div className="question-meta">
-          <div className="question-author">
-            <span 
-              className="author-name"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                if (question.User && question.User.id) {
-                  setCurrentPage('user-profile', question.User.id);
-                }
-              }}
-              style={{ cursor: 'pointer' }}
-            >
-              {question.User ? question.User.username : 'Nezināms lietotājs'}
-            </span>
-            <span className="post-date">jautāja {formatDate(question.createdAt)}</span>
-          </div>
+          <div className="question-meta">
+            <div className="question-author">
+              <span 
+                className="author-name"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (question.User && question.User.id) {
+                    setCurrentPage('user-profile', question.User.id);
+                  }
+                }}
+                style={{ cursor: 'pointer' }}
+              >
+                {question.User ? question.User.username : 'Unknown User'}
+              </span>
+              <span className="post-date">asked on {formatDate(question.createdAt)}</span>
+            </div>
                     
             <div className="question-actions">
               {user && user.role === 'admin' && (
@@ -333,7 +344,7 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
                   onClick={handleDeleteQuestion}
                   disabled={isDeleting}
                 >
-                  {isDeleting ? 'Dzēš...' : 'Dzēst jautājumu'}
+                  {isDeleting ? 'Deleting...' : 'Delete Question'}
                 </button>
               )}
               
@@ -342,7 +353,7 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
                   className="btn btn-sm btn-outline"
                   onClick={() => setShowReportModal(true)}
                 >
-                  Ziņot
+                  Report
                 </button>
               )}
             </div>
@@ -351,6 +362,14 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
           <div className="question-content">
             {question.content}
           </div>
+          
+          {/* Display attachments if there are any */}
+          {attachments.length > 0 && (
+            <AttachmentsViewer 
+              attachments={attachments}
+              questionAttachmentService={questionAttachmentService}
+            />
+          )}
           
           <div className="question-tags">
             {question.Tags && question.Tags.map(tag => (
@@ -361,12 +380,12 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
         
         <div className="answers-container">
           <h2 className="answers-title">
-            {answers.length} {answers.length === 1 ? 'Atbilde' : 'Atbildes'}
+            {answers.length} {answers.length === 1 ? 'Answer' : 'Answers'}
           </h2>
           
           {answers.length === 0 ? (
             <div className="no-answers">
-              <p>Pagaidām nav atbilžu. Kļūstiet par pirmo, kas atbild!</p>
+              <p>No answers yet. Be the first to answer!</p>
             </div>
           ) : (
             <div className="answers-list">
@@ -375,13 +394,21 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
                   {answer.isAccepted && (
                     <div className="accepted-badge">
                       <span className="accepted-icon">✓</span>
-                      <span>Pieņemtā atbilde</span>
+                      <span>Accepted Answer</span>
                     </div>
                   )}
                   
                   <div className="answer-content">
                     {answer.content}
                   </div>
+                  
+                  {/* Comments section for each answer */}
+                  <CommentsComponent 
+                    questionId={question.id}
+                    answerId={answer.id}
+                    currentUser={user}
+                    commentsService={commentsService}
+                  />
                   
                   <div className="answer-meta">
                     <div className="answer-author">
@@ -396,14 +423,15 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
                         }}
                         style={{ cursor: 'pointer' }}
                       >
-                        {answer.User ? answer.User.username : 'Nezināms lietotājs'}
+                        {answer.User ? answer.User.username : 'Unknown User'}
                       </span>
                       {answer.User && answer.User.role && (
                         <span className={`author-badge ${answer.User.role === 'power' ? 'professional' : answer.User.role === 'admin' ? 'admin' : ''}`}>
-                          {answer.User.role === 'power' ? 'Profesionālis' : 
-                           answer.User.role === 'admin' ? 'Administrators' : ''}
+                          {answer.User.role === 'power' ? 'Professional' : 
+                           answer.User.role === 'admin' ? 'Administrator' : ''}
                         </span>
                       )}
+                      <span className="answer-date">answered {formatDate(answer.createdAt)}</span>
                     </div>
                     
                     <div className="answer-actions">
@@ -417,7 +445,7 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
                           className="btn btn-sm btn-outline"
                           onClick={() => handleOpenReviewModal(answer.User)}
                         >
-                          Atstāt atsauksmi
+                          Leave Review
                         </button>
                       )}
                       
@@ -430,7 +458,7 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
                           className="btn btn-outline accept-answer-btn"
                           onClick={() => handleAcceptAnswer(answer.id)}
                         >
-                          Pieņemt kā risinājumu
+                          Accept as Solution
                         </button>
                       )}
                     </div>
@@ -452,7 +480,7 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
               {!user && (
                 <div className="login-prompt">
                   <button onClick={navigateToLogin} className="btn btn-primary">
-                    Pieslēgties
+                    Log In
                   </button>
                 </div>
               )}
@@ -461,25 +489,25 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
           
           {question.status !== 'closed' && (
             <div className="post-answer">
-              <h3>Jūsu atbilde</h3>
+              <h3>Your Answer</h3>
               
               {!user ? (
                 <div className="login-required">
-                  <p>Lai atbildētu uz šo jautājumu, jums jāpieslēdzas.</p>
+                  <p>Please log in to answer this question.</p>
                   <button className="btn btn-primary" onClick={navigateToLogin}>
-                    Pieslēgties, lai atbildētu
+                    Log In to Answer
                   </button>
                 </div>
               ) : !canAnswer ? (
                 <div className="permission-required">
-                  <p>Tikai profesionāļi ar atbilstošiem kategorijas tagiem var atbildēt uz šo jautājumu.</p>
+                  <p>Only professionals with matching category tags can answer this question.</p>
                 </div>
               ) : (
                 <form onSubmit={handleSubmitAnswer}>
                   <div className="form-group">
                     <textarea
                       className="form-control"
-                      placeholder="Rakstiet savu atbildi šeit..."
+                      placeholder="Write your answer here..."
                       value={answerContent}
                       onChange={(e) => setAnswerContent(e.target.value)}
                       rows={8}
@@ -492,7 +520,7 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
                     className="btn btn-primary"
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? 'Iesniedz...' : 'Iesniegt atbildi'}
+                    {isSubmitting ? 'Submitting...' : 'Submit Answer'}
                   </button>
                 </form>
               )}
