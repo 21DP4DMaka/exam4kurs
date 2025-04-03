@@ -1,7 +1,7 @@
-// src/pages/AdminUsersPage.js
 import React, { useState, useEffect } from 'react';
 import './DashboardPage.css';
 import './AdminPages.css';
+import AdminDashboardStats from '../components/AdminDashboardStats'; // Import the statistics component
 import { authService, userService } from '../services/api'; // Added userService import
 
 function AdminUsersPage() {
@@ -17,6 +17,7 @@ function AdminUsersPage() {
   const [actionType, setActionType] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [reason, setReason] = useState('');
+  const [showStats, setShowStats] = useState(true); // State to toggle statistics view
 
   // Fetch data
   useEffect(() => {
@@ -133,6 +134,11 @@ function AdminUsersPage() {
     });
   };
 
+  // Toggle statistics view
+  const toggleStats = () => {
+    setShowStats(!showStats);
+  };
+
   if (isLoading) return <div className="loading-spinner">Ielāde...</div>;
   if (error && !user) return <div className="error-message">{error}</div>;
   
@@ -168,6 +174,19 @@ function AdminUsersPage() {
             <button onClick={() => setError(null)} className="close-button">×</button>
           </div>
         )}
+
+        {/* Toggle button for statistics */}
+        <div className="stats-toggle-container">
+          <button 
+            className={`btn ${showStats ? 'btn-primary' : 'btn-outline'}`}
+            onClick={toggleStats}
+          >
+            {showStats ? 'Slēpt statistiku' : 'Rādīt statistiku'}
+          </button>
+        </div>
+        
+        {/* Statistics Dashboard - conditionally shown */}
+        {showStats && <AdminDashboardStats />}
         
         <div className="search-box">
           <form onSubmit={handleSearch}>

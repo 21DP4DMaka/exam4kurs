@@ -16,6 +16,7 @@ const tagApplicationRoutes = require('./routes/tagApplication');
 const reviewRoutes = require('./routes/reviews');
 const commentRoutes = require('./routes/comments'); 
 const attachmentRoutes = require('./routes/attachments');
+const statisticsRoutes = require('./routes/statistics');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -39,6 +40,7 @@ app.use('/api/answers', commentRoutes);   // Use the existing commentRoutes here
 app.use('/api/comments', commentRoutes);
 // This is crucial - make sure commentRoutes is registered at the answer path too
 app.use('/api', attachmentRoutes);
+app.use('/api/admin/statistics', statisticsRoutes);
 
 // Test route
 app.get('/', (req, res) => {
