@@ -157,36 +157,9 @@ function DashboardPage({ user: passedUser, setCurrentPage, handleViewQuestion })
             <h3>{user.username}</h3>
             <p className="user-type">
               {user.role === 'admin' ? 'Administrators' : 
-               user.role === 'power' ? 'Power lietotājs' : 'Lietotājs'}
+               user.role === 'power' ? 'Profesionāls' : 'Lietotājs'}
             </p>
           </div>
-          
-          <nav className="dashboard-nav">
-            <ul>
-              <li className="active"><a href="#"><i className="icon">📊</i> Pārskats</a></li>
-              <li><a href="#"><i className="icon">❓</i> Mani jautājumi</a></li>
-              <li><a href="#"><i className="icon">✓</i> Manas atbildes</a></li>
-              <li><a href="#"><i className="icon">🔔</i> Paziņojumi <span className="badge">{stats.unreadNotifications}</span></a></li>
-              <li><a href="#"><i className="icon">⭐</i> Favorīti</a></li>
-              
-              {/* Administratora saite tagu pieteikumiem (tikai adminiem) */}
-              {user && user.role === 'admin' && (
-                <li>
-                  <a 
-                    href="#" 
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setCurrentPage('admin-tag-applications');
-                    }}
-                  >
-                    <i className="icon">📝</i> Tagu pieteikumi
-                  </a>
-                </li>
-              )}
-              
-              <li><a href="#"><i className="icon">👤</i> Profila iestatījumi</a></li>
-            </ul>
-          </nav>
         </div>
         
         <div className="dashboard-content">
@@ -275,27 +248,39 @@ function DashboardPage({ user: passedUser, setCurrentPage, handleViewQuestion })
                 ) : (
                   <ul className="notifications-list">
                     {notifications.map(notification => (
-                      <li 
-                        key={notification.id} 
-                        className={`notification-item ${notification.isRead ? 'read' : 'unread'}`}
-                        onClick={() => !notification.isRead && markNotificationAsRead(notification.id)}
-                      >
-                        <div className={`notification-icon ${notification.type}`}>
-                          {notification.type === 'answer' && '✉️'}
-                          {notification.type === 'mention' && '@'}
-                          {notification.type === 'system' && '🔔'}
-                          {notification.type === 'rating' && '⭐'}
-                          {notification.type === 'acceptance' && '✅'}
-                          {notification.type === 'question' && '❓'}
-                          {notification.type === 'comment' && '💭'}
-                        </div>
-                        <div className="notification-content">
-                          <p>{notification.content}</p>
-                          <span className="notification-time">{formatDateTime(notification.createdAt)}</span>
-                        </div>
-                        {!notification.isRead && <div className="unread-indicator"></div>}
-                      </li>
-                    ))}
+                        <li 
+                          key={notification.id} 
+                          className={`notification-item ${notification.isRead ? 'read' : 'unread'}`}
+                          onClick={(e) => {
+                            // Mark as read if unread
+                            if (!notification.isRead) {
+                              markNotificationAsRead(notification.id);
+                            }
+                            
+                            // Navigate to the related question if available
+                            if (notification.relatedQuestionId) {
+                              console.log(`Navigating to question ID: ${notification.relatedQuestionId}`);
+                              setCurrentPage('question-view', notification.relatedQuestionId);
+                            }
+                          }}
+                          style={{ cursor: notification.relatedQuestionId ? 'pointer' : 'default' }}
+                        >
+                          <div className={`notification-icon ${notification.type}`}>
+                            {notification.type === 'answer' && '✉️'}
+                            {notification.type === 'mention' && '@'}
+                            {notification.type === 'system' && '🔔'}
+                            {notification.type === 'rating' && '⭐'}
+                            {notification.type === 'acceptance' && '✅'}
+                            {notification.type === 'question' && '❓'}
+                            {notification.type === 'comment' && '💭'}
+                          </div>
+                          <div className="notification-content">
+                            <p>{notification.content}</p>
+                            <span className="notification-time">{formatDateTime(notification.createdAt)}</span>
+                          </div>
+                          {!notification.isRead && <div className="unread-indicator"></div>}
+                        </li>
+                      ))}
                   </ul>
                 )}
               </div>
