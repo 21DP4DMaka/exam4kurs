@@ -1,3 +1,4 @@
+// Modified App.js with banned user handling
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import Header from './components/Header';
@@ -13,6 +14,7 @@ import QuestionsPage from './pages/QuestionsPage';
 import AskQuestionPage from './pages/AskQuestionPage';
 import QuestionViewPage from './pages/QuestionViewPage';
 import UserProfilePage from './pages/UserProfilePage';
+import BannedUserPage from './pages/BannedUserPage'; // Import the new component
 import { authService } from './services/api';
 import AboutUsPage from './pages/AboutUsPage';
 
@@ -23,6 +25,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedQuestionId, setSelectedQuestionId] = useState(null);
   const [selectedUserId, setSelectedUserId] = useState(null);
+  const [banInfo, setBanInfo] = useState(null); // Add state for ban information
   
   // Make the setCurrentPage function globally available for components that can't receive it as props
   useEffect(() => {
@@ -46,16 +49,35 @@ function App() {
           const response = await authService.getCurrentUser();
           setUser(response.data.user);
           setIsLoggedIn(true);
+          setBanInfo(null); // Reset ban info on successful auth
           
           // Redirect to dashboard if accessing login/register pages while logged in
           if (currentPage === 'login' || currentPage === 'register') {
             setCurrentPage('dashboard');
           }
         } catch (error) {
-          // If token is invalid, remove it
-          localStorage.removeItem('token');
-          setIsLoggedIn(false);
-          setUser(null);
+          console.error("Auth error:", error);
+          
+          // Check if the error is due to the user being banned
+          if (error.response && error.response.status === 403 && 
+              error.response.data && error.response.data.message &&
+              error.response.data.message.includes('bloķēts')) {
+            
+            // Store the ban reason
+            setBanInfo({
+              message: error.response.data.message,
+              reason: error.response.data.reason || 'Lietošanas noteikumu pārkāpums'
+            });
+            
+            // Keep user logged in but in a restricted state
+            setIsLoggedIn(true);
+          } else {
+            // Other auth errors, clear token
+            localStorage.removeItem('token');
+            setIsLoggedIn(false);
+            setUser(null);
+            setBanInfo(null);
+          }
         }
       }
       
@@ -74,6 +96,7 @@ function App() {
     localStorage.removeItem('token');
     setIsLoggedIn(false);
     setUser(null);
+    setBanInfo(null);
     setCurrentPage('home');
   };
   
@@ -114,6 +137,11 @@ function App() {
       return <div className="loading-container">Ielāde...</div>;
     }
     
+    // If user is banned, show the banned user page
+    if (banInfo) {
+      return <BannedUserPage banReason={banInfo.reason} onLogout={handleLogout} />;
+    }
+    
     switch(currentPage) {
       case 'login':
         return <LoginPage onLogin={handleLogin} />;
@@ -147,7 +175,7 @@ function App() {
           return <LoginPage onLogin={handleLogin} />;
         }
         if (user && user.role === 'admin') {
-          return <AdminTagApplicationsPage />;
+          return <AdminUsersPage setCurrentPage={setCurPage} />;
         }
         return <DashboardPage 
           user={user} 
@@ -213,7 +241,7 @@ function App() {
   return (
     <div className="App">
       <Header 
-        isLoggedIn={isLoggedIn}
+        isLoggedIn={isLoggedIn && !banInfo} // Don't show normal header for banned users
         user={user}
         onLogout={handleLogout}
         setCurrentPage={setCurPage}

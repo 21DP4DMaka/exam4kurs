@@ -1,3 +1,4 @@
+// Updated profan-server/controllers/authController.js
 const { sequelize, User, ProfessionalProfile } = require('../models');
 const { Op } = require('sequelize');
 const jwt = require('jsonwebtoken');
@@ -58,7 +59,7 @@ exports.register = async (req, res) => {
   }
 };
 
-// Lietotāja pieteikšanās
+// Lietotāja pieteikšanās - Modified to handle banned users
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -75,6 +76,22 @@ exports.login = async (req, res) => {
 
     if (!isMatch) {
       return res.status(401).json({ message: 'Nepareizs e-pasts vai parole' });
+    }
+
+    // Check if user is banned
+    if (user.status === 'banned') {
+      // Still create a token for banned users but return appropriate status and message
+      const token = jwt.sign(
+        { userId: user.id },
+        process.env.JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+
+      return res.status(403).json({
+        message: 'Jūsu konts ir bloķēts',
+        reason: user.banReason || 'Lietošanas noteikumu pārkāpums',
+        token // Include token so frontend can use it with the ban page
+      });
     }
 
     // Izveidot JWT

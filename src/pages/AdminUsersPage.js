@@ -1,23 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import './DashboardPage.css';
 import './AdminPages.css';
-import AdminDashboardStats from '../components/AdminDashboardStats'; // Import the statistics component
-import { authService, userService } from '../services/api'; // Added userService import
+import AdminDashboardStats from '../components/AdminDashboardStats';
+import { authService, userService } from '../services/api';
 
-function AdminUsersPage() {
+function AdminUsersPage({ setCurrentPage }) {
   const [user, setUser] = useState(null);
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPageNum] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [selectedUser, setSelectedUser] = useState(null);
   const [actionType, setActionType] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [reason, setReason] = useState('');
-  const [showStats, setShowStats] = useState(true); // State to toggle statistics view
+  const [showStats, setShowStats] = useState(true);
 
   // Fetch data
   useEffect(() => {
@@ -60,7 +60,7 @@ function AdminUsersPage() {
       const response = await userService.getUsers(params);
       setUsers(response.data.users);
       setTotalPages(response.data.totalPages);
-      setCurrentPage(response.data.currentPage);
+      setCurrentPageNum(response.data.currentPage);
     } catch (error) {
       console.error('Kļūda ielādējot lietotājus:', error);
       setError('Neizdevās ielādēt lietotājus. Lūdzu, mēģiniet vēlreiz.');
@@ -137,6 +137,16 @@ function AdminUsersPage() {
   // Toggle statistics view
   const toggleStats = () => {
     setShowStats(!showStats);
+  };
+
+  // Handle view profile
+  const handleViewProfile = (userId) => {
+    console.log("Navigating to user profile:", userId);
+    if (setCurrentPage) {
+      setCurrentPage('user-profile', userId);
+    } else {
+      console.error("setCurrentPage function is not available");
+    }
   };
 
   if (isLoading) return <div className="loading-spinner">Ielāde...</div>;
@@ -265,7 +275,10 @@ function AdminUsersPage() {
                               </button>
                             </>
                           )}
-                          <button className="btn btn-sm btn-outline">
+                          <button 
+                            className="btn btn-sm btn-outline"
+                            onClick={() => handleViewProfile(userItem.id)}
+                          >
                             Skatīt profilu
                           </button>
                         </div>

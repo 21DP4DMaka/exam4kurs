@@ -1,3 +1,4 @@
+// Updated profan-server/middleware/auth.js
 const jwt = require('jsonwebtoken');
 const { User } = require('../models');
 
@@ -25,7 +26,7 @@ exports.authenticateToken = async (req, res, next) => {
       return res.status(401).json({ message: 'Lietotājs neeksistē' });
     }
     
-    // Check if user is banned
+    // Check if user is banned - Return a clear error message with reason
     if (user.status === 'banned') {
       return res.status(403).json({ 
         message: 'Jūsu konts ir bloķēts',

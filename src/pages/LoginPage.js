@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+// src/pages/LoginPage.js - Updated to handle banned user responses
+import React, { useState, useEffect } from 'react';
 import './AuthPages.css';
 import { authService } from '../services/api';
 
@@ -76,8 +77,23 @@ function LoginPage({ onLogin }) {
         onLogin && onLogin();
       } catch (error) {
         // Apstrādāt kļūdas
-        if (error.response && error.response.data && error.response.data.message) {
-          setServerError(error.response.data.message);
+        if (error.response && error.response.data) {
+          // Check if the error is due to the user being banned
+          if (error.response.status === 403 && 
+              error.response.data.message && 
+              error.response.data.message.includes('bloķēts')) {
+            
+            // Store token anyway - App.js will handle showing banned user screen
+            if (error.response.data.token) {
+              localStorage.setItem('token', error.response.data.token);
+            }
+            
+            // Call onLogin to trigger the App to check auth status and show ban page
+            onLogin && onLogin();
+          } else {
+            // Regular error handling
+            setServerError(error.response.data.message || 'Kļūda pieteikšanās laikā. Lūdzu, mēģiniet vēlreiz.');
+          }
         } else {
           setServerError('Kļūda pieteikšanās laikā. Lūdzu, mēģiniet vēlreiz.');
         }

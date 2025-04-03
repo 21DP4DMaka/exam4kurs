@@ -1,0 +1,26 @@
+/* src/pages/BannedUserPage.css */
+.ban-message {
+    text-align: center;
+    margin-bottom: 25px;
+  }
+  
+  .ban-reason {
+    background-color: #fff5f5;
+    border: 1px solid #fed7d7;
+    border-radius: 4px;
+    padding: 15px;
+    margin: 20px 0;
+    text-align: left;
+  }
+  
+  .ban-reason h3 {
+    color: #e53e3e;
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+  }
+  
+  .ban-reason p {
+    color: #2d3748;
+    margin: 0;
+  }
