@@ -12,18 +12,30 @@ import AdminUsersPage from './pages/AdminUsersPage';
 import QuestionsPage from './pages/QuestionsPage';
 import AskQuestionPage from './pages/AskQuestionPage';
 import QuestionViewPage from './pages/QuestionViewPage';
-import UserProfilePage from './pages/UserProfilePage'; // Import the new component
+import UserProfilePage from './pages/UserProfilePage';
 import { authService } from './services/api';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
-  const [currentPage, setCurrentPage] = useState('home'); // 'home', 'login', 'register', 'dashboard', 'professional-profile', 'admin-tag-applications', 'admin-users', 'questions', 'ask-question', 'question-view', 'user-profile'
+  const [currentPage, setCurrentPage] = useState('home');
   const [isLoading, setIsLoading] = useState(true);
   const [selectedQuestionId, setSelectedQuestionId] = useState(null);
-  const [selectedUserId, setSelectedUserId] = useState(null); // Add state for selected user ID
+  const [selectedUserId, setSelectedUserId] = useState(null);
   
-  // Pārbaudīt, vai lietotājs jau ir pieteicies (pārbaudot tokenu)
+  // Make the setCurrentPage function globally available for components that can't receive it as props
+  useEffect(() => {
+    window.navigateToPage = (page, param = null) => {
+      setCurPage(page, param);
+    };
+    
+    return () => {
+      // Clean up when component unmounts
+      delete window.navigateToPage;
+    };
+  }, []);
+  
+  // Check authentication status
   useEffect(() => {
     const checkAuthStatus = async () => {
       const token = localStorage.getItem('token');
@@ -34,12 +46,12 @@ function App() {
           setUser(response.data.user);
           setIsLoggedIn(true);
           
-          // Ja lietotājs mēģina piekļūt login/register, novirziet uz dashboard
+          // Redirect to dashboard if accessing login/register pages while logged in
           if (currentPage === 'login' || currentPage === 'register') {
             setCurrentPage('dashboard');
           }
         } catch (error) {
-          // Ja tokens nav derīgs, noņemt to
+          // If token is invalid, remove it
           localStorage.removeItem('token');
           setIsLoggedIn(false);
           setUser(null);
@@ -69,14 +81,14 @@ function App() {
     setCurrentPage('dashboard');
   };
   
-  // Apstrādāt jautājuma atlasi
+  // Handle question selection
   const handleViewQuestion = (questionId) => {
-    console.log("Opening question with ID:", questionId); // Debug log
+    console.log("Opening question with ID:", questionId);
     setSelectedQuestionId(questionId);
     setCurrentPage('question-view');
   };
   
-  // Add a function to handle user profile navigation
+  // Handle user profile navigation
   const handleViewUserProfile = (userId) => {
     console.log("Opening user profile with ID:", userId);
     setSelectedUserId(userId);
@@ -95,7 +107,7 @@ function App() {
     setCurrentPage(page);
   };
   
-  // Pagaidām vienkāršs maršrutētājs - vēlāk aizstāt ar React Router
+  // Simple router - replace with React Router later
   const renderPage = () => {
     if (isLoading) {
       return <div className="loading-container">Ielāde...</div>;
@@ -107,7 +119,7 @@ function App() {
       case 'register':
         return <RegisterPage onRegister={handleRegister} />;
       case 'dashboard':
-        // Ja lietotājs nav pieteicies, novirziet uz pieteikšanās lapu
+        // Redirect to login page if not logged in
         return isLoggedIn ? 
           <DashboardPage 
             user={user} 
@@ -116,7 +128,7 @@ function App() {
           /> : 
           <LoginPage onLogin={handleLogin} />;
       case 'professional-profile':
-        // Pārbaudīt, vai lietotājs ir profesionālis vai administrators
+        // Check if user is a professional or admin
         if (!isLoggedIn) {
           return <LoginPage onLogin={handleLogin} />;
         }
@@ -129,7 +141,7 @@ function App() {
           handleViewQuestion={handleViewQuestion} 
         />;
       case 'admin-tag-applications':
-        // Pārbaudīt, vai lietotājs ir administrators
+        // Check if user is an admin
         if (!isLoggedIn) {
           return <LoginPage onLogin={handleLogin} />;
         }
@@ -158,11 +170,12 @@ function App() {
         return <QuestionsPage 
           setCurrentPage={setCurPage} 
           handleViewQuestion={handleViewQuestion} 
+          handleViewUserProfile={handleViewUserProfile}
         />;
       case 'ask-question':
         return <AskQuestionPage user={user} setCurrentPage={setCurPage} />;
       case 'question-view':
-        console.log("Rendering question view for ID:", selectedQuestionId); // Debug log
+        console.log("Rendering question view for ID:", selectedQuestionId);
         if (!selectedQuestionId) {
           return <QuestionsPage 
             setCurrentPage={setCurPage} 
@@ -174,16 +187,16 @@ function App() {
           user={user} 
           setCurrentPage={setCurPage} 
         />;
-        case 'user-profile':
-          console.log("Rendering user profile for ID:", selectedUserId);
-          if (!selectedUserId) {
-            return <DashboardPage 
-              user={user} 
-              setCurrentPage={setCurPage} 
-              handleViewQuestion={handleViewQuestion} 
-            />;
-          }
-          return <UserProfilePage 
+      case 'user-profile':
+        console.log("Rendering user profile for ID:", selectedUserId);
+        if (!selectedUserId) {
+          return <DashboardPage 
+            user={user} 
+            setCurrentPage={setCurPage} 
+            handleViewQuestion={handleViewQuestion} 
+          />;
+        }
+        return <UserProfilePage 
           profileUserId={selectedUserId} 
           currentUser={user} 
           setCurrentPage={setCurPage} 
@@ -203,7 +216,7 @@ function App() {
         setCurrentPage={setCurPage}
       />
       <main>
-      {renderPage()}
+        {renderPage()}
       </main>
       <Footer />
     </div>
