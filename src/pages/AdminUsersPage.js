@@ -1,3 +1,6 @@
+// src/pages/AdminUsersPage.js
+// This modification fixes the "Skatīt profilu" button functionality
+
 import React, { useState, useEffect } from 'react';
 import './DashboardPage.css';
 import './AdminPages.css';
@@ -139,10 +142,10 @@ function AdminUsersPage({ setCurrentPage }) {
     setShowStats(!showStats);
   };
 
-  // Handle view profile
+  // Handle view profile - FIXED FUNCTION
   const handleViewProfile = (userId) => {
-    console.log("Navigating to user profile:", userId);
     if (setCurrentPage) {
+      // Navigate to the user profile page with the user ID as a parameter
       setCurrentPage('user-profile', userId);
     } else {
       console.error("setCurrentPage function is not available");

@@ -1,4 +1,4 @@
-// Modified App.js with banned user handling
+// src/App.js - Fixed navigation issues for tag applications and user profiles
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import Header from './components/Header';
@@ -14,7 +14,7 @@ import QuestionsPage from './pages/QuestionsPage';
 import AskQuestionPage from './pages/AskQuestionPage';
 import QuestionViewPage from './pages/QuestionViewPage';
 import UserProfilePage from './pages/UserProfilePage';
-import BannedUserPage from './pages/BannedUserPage'; // Import the new component
+import BannedUserPage from './pages/BannedUserPage';
 import { authService } from './services/api';
 import AboutUsPage from './pages/AboutUsPage';
 
@@ -25,7 +25,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedQuestionId, setSelectedQuestionId] = useState(null);
   const [selectedUserId, setSelectedUserId] = useState(null);
-  const [banInfo, setBanInfo] = useState(null); // Add state for ban information
+  const [banInfo, setBanInfo] = useState(null);
   
   // Make the setCurrentPage function globally available for components that can't receive it as props
   useEffect(() => {
@@ -175,7 +175,7 @@ function App() {
           return <LoginPage onLogin={handleLogin} />;
         }
         if (user && user.role === 'admin') {
-          return <AdminUsersPage setCurrentPage={setCurPage} />;
+          return <AdminTagApplicationsPage setCurrentPage={setCurPage} />;
         }
         return <DashboardPage 
           user={user} 
@@ -188,7 +188,7 @@ function App() {
           return <LoginPage onLogin={handleLogin} />;
         }
         if (user && user.role === 'admin') {
-          return <AdminUsersPage />;
+          return <AdminUsersPage setCurrentPage={setCurPage} />;
         }
         return <DashboardPage 
           user={user} 
@@ -199,6 +199,7 @@ function App() {
         return <QuestionsPage 
           setCurrentPage={setCurPage} 
           handleViewQuestion={handleViewQuestion} 
+          handleViewUserProfile={handleViewUserProfile}
         />;
       case 'ask-question':
         return <AskQuestionPage user={user} setCurrentPage={setCurPage} />;

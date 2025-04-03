@@ -1,3 +1,6 @@
+// src/components/Header.js
+// This modification fixes the navigation for the "Tagu Pieteikumi" button
+
 import React from 'react';
 import './Header.css';
 
