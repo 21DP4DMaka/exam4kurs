@@ -192,7 +192,7 @@ function AskQuestionPage({ user, setCurrentPage }) {
           
           <form onSubmit={handleSubmit} className="question-form">
             <div className="form-group">
-              <label htmlFor="title">Jautājuma virsraksts</label>
+              <label htmlFor="title">Jautājuma virsraksts*</label>
               <input
                 type="text"
                 id="title"
@@ -209,7 +209,7 @@ function AskQuestionPage({ user, setCurrentPage }) {
             </div>
             
             <div className="form-group">
-              <label htmlFor="content">Jautājuma saturs</label>
+              <label htmlFor="content">Jautājuma saturs*</label>
               <textarea
                 id="content"
                 name="content"
@@ -234,7 +234,7 @@ function AskQuestionPage({ user, setCurrentPage }) {
             </div>
             
             <div className="form-group">
-              <label>Tagi</label>
+              <label>Tagi*</label>
               <div className="tags-container">
                 {availableTags.map(tag => (
                   <div key={tag.id} className="tag-option">

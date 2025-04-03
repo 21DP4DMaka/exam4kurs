@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './CommentsComponent.css';
 
-const CommentsComponent = ({ questionId, answerId, currentUser, commentsService }) => {
+const CommentsComponent = ({ questionId, answerId, currentUser, commentsService, questionStatus }) => {
   const [comments, setComments] = useState([]);
   const [commentContext, setCommentContext] = useState({
     questionAuthorId: null,
@@ -126,6 +126,9 @@ const CommentsComponent = ({ questionId, answerId, currentUser, commentsService 
   const canComment = () => {
     if (!currentUser) return false;
     
+    // First check if the question is closed
+    if (questionStatus === 'closed') return false;
+    
     // Parse the IDs as numbers for consistency
     const currentUserId = Number(currentUser.id);
     const questionAuthorId = Number(commentContext.questionAuthorId);
@@ -137,7 +140,8 @@ const CommentsComponent = ({ questionId, answerId, currentUser, commentsService 
         questionAuthorId,
         answerAuthorId,
         isQuestionAuthor: currentUserId === questionAuthorId,
-        isAnswerAuthor: currentUserId === answerAuthorId
+        isAnswerAuthor: currentUserId === answerAuthorId,
+        questionStatus
       });
     }
     
@@ -173,7 +177,8 @@ const CommentsComponent = ({ questionId, answerId, currentUser, commentsService 
               canComment: currentUser ? canComment() : false,
               answerId,
               questionId,
-              commentsCount: comments.length
+              commentsCount: comments.length,
+              questionStatus
             }, null, 2)}</pre>
           </details>
         </div>
@@ -214,7 +219,12 @@ const CommentsComponent = ({ questionId, answerId, currentUser, commentsService 
             onChange={(e) => setNewComment(e.target.value)}
             disabled={isLoading || !canComment()}
           ></textarea>
-          {!canComment() && (
+          {!canComment() && questionStatus === 'closed' && (
+            <p className="comments-permission-note">
+              Komentāru pievienošana nav iespējama, jo jautājums ir slēgts.
+            </p>
+          )}
+          {!canComment() && questionStatus !== 'closed' && (
             <p className="comments-permission-note">
               Tikai jautājuma autors un atbildētājs var pievienot komentārus.
             </p>

@@ -395,24 +395,25 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
             <div className="answers-list">
               {answers.map(answer => (
                 <div key={answer.id} className={`answer ${answer.isAccepted ? 'accepted-answer' : ''}`}>
-                  {answer.isAccepted && (
-                    <div className="accepted-badge">
-                      <span className="accepted-icon">✓</span>
-                      <span>Pieņemta atbilde</span>
-                    </div>
-                  )}
-                  
-                  <div className="answer-content">
-                    {answer.content}
+                {answer.isAccepted && (
+                  <div className="accepted-badge">
+                    <span className="accepted-icon">✓</span>
+                    <span>Pieņemta atbilde</span>
                   </div>
-                  
-                  {/* Comments section for each answer */}
-                  <CommentsComponent 
-                    questionId={question.id}
-                    answerId={answer.id}
-                    currentUser={user}
-                    commentsService={commentsService}
-                  />
+                )}
+                
+                <div className="answer-content">
+                  {answer.content}
+                </div>
+                
+                {/* Comments section for each answer */}
+                <CommentsComponent 
+                  questionId={question.id}
+                  answerId={answer.id}
+                  currentUser={user}
+                  commentsService={commentsService}
+                  questionStatus={question.status} // Added this line
+                />
                   
                   <div className="answer-meta">
                     <div className="answer-author">
