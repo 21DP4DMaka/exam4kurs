@@ -14,11 +14,11 @@ function Header({ isLoggedIn, user, onLogout, setCurrentPage }) {
           Professional Answers
         </h1>
         <nav>
-          <ul>
-            <li><a href="/" onClick={(e) => handleNavigation('home', e)}>Sākums</a></li>
-            <li><a href="/questions" onClick={(e) => handleNavigation('questions', e)}>Jautājumi</a></li>
-            <li><a href="/about" onClick={(e) => e.preventDefault()}>Par mums</a></li>
-          </ul>
+        <ul>
+          <li><a href="/" onClick={(e) => handleNavigation('home', e)}>Sākums</a></li>
+          <li><a href="/questions" onClick={(e) => handleNavigation('questions', e)}>Jautājumi</a></li>
+          <li><a href="/about" onClick={(e) => handleNavigation('about', e)}>Par mums</a></li>
+        </ul>
           <div className="auth-buttons">
             {!isLoggedIn ? (
               <>

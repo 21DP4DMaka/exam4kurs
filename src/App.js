@@ -14,6 +14,7 @@ import AskQuestionPage from './pages/AskQuestionPage';
 import QuestionViewPage from './pages/QuestionViewPage';
 import UserProfilePage from './pages/UserProfilePage';
 import { authService } from './services/api';
+import AboutUsPage from './pages/AboutUsPage';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -119,7 +120,7 @@ function App() {
       case 'register':
         return <RegisterPage onRegister={handleRegister} />;
       case 'dashboard':
-        // Redirect to login page if not logged in
+        // If user is not logged in, redirect to login page
         return isLoggedIn ? 
           <DashboardPage 
             user={user} 
@@ -128,7 +129,7 @@ function App() {
           /> : 
           <LoginPage onLogin={handleLogin} />;
       case 'professional-profile':
-        // Check if user is a professional or admin
+        // Check if user is professional or administrator
         if (!isLoggedIn) {
           return <LoginPage onLogin={handleLogin} />;
         }
@@ -141,7 +142,7 @@ function App() {
           handleViewQuestion={handleViewQuestion} 
         />;
       case 'admin-tag-applications':
-        // Check if user is an admin
+        // Check if user is administrator
         if (!isLoggedIn) {
           return <LoginPage onLogin={handleLogin} />;
         }
@@ -170,12 +171,11 @@ function App() {
         return <QuestionsPage 
           setCurrentPage={setCurPage} 
           handleViewQuestion={handleViewQuestion} 
-          handleViewUserProfile={handleViewUserProfile}
         />;
       case 'ask-question':
         return <AskQuestionPage user={user} setCurrentPage={setCurPage} />;
       case 'question-view':
-        console.log("Rendering question view for ID:", selectedQuestionId);
+        console.log("Rendering question view for ID:", selectedQuestionId); // Debug log
         if (!selectedQuestionId) {
           return <QuestionsPage 
             setCurrentPage={setCurPage} 
@@ -201,6 +201,9 @@ function App() {
           currentUser={user} 
           setCurrentPage={setCurPage} 
         />;
+      case 'about':
+        // Add this new case for the About Us page
+        return <AboutUsPage setCurrentPage={setCurPage} />;
       case 'home':
       default:
         return <HomePage />;
