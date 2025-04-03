@@ -1,0 +1,114 @@
+.profile-edit-container {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    padding: 30px;
+    margin-bottom: 30px;
+  }
+  
+  .profile-edit-container h2 {
+    margin: 0 0 20px;
+    color: #2c3e50;
+    font-size: 1.8rem;
+  }
+  
+  .profile-edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+  }
+  
+  .form-section {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 20px;
+  }
+  
+  .form-section h3 {
+    margin: 0 0 20px;
+    color: #2c3e50;
+    font-size: 1.2rem;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  
+  .avatar-upload-container {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+  }
+  
+  .current-avatar {
+    flex-shrink: 0;
+  }
+  
+  .avatar-preview {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #f1f5f9;
+  }
+  
+  .avatar-placeholder {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background-color: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    font-size: 0.9rem;
+    border: 4px solid #e2e8f0;
+  }
+  
+  .avatar-upload {
+    flex-grow: 1;
+  }
+  
+  .file-input {
+    position: absolute;
+    width: 0.1px;
+    height: 0.1px;
+    opacity: 0;
+    overflow: hidden;
+    z-index: -1;
+  }
+  
+  .file-upload-btn {
+    display: inline-block;
+    padding: 10px 15px;
+    background-color: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    color: #4a5568;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .file-upload-btn:hover {
+    background-color: #e2e8f0;
+  }
+  
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-top: 10px;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .avatar-upload-container {
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+    
+    .avatar-upload {
+      width: 100%;
+      text-align: center;
+    }
+  }

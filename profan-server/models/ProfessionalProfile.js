@@ -15,6 +15,10 @@ const ProfessionalProfile = sequelize.define('ProfessionalProfile', {
     type: DataTypes.TEXT,
     allowNull: true
   },
+  workplace: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  },
   verificationStatus: {
     type: DataTypes.ENUM('pending', 'verified', 'rejected'),
     defaultValue: 'pending'

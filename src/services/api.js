@@ -100,7 +100,15 @@ export const userService = {
   getUserAnswers: (userId) => apiClient.get(`/users/${userId}/answers`),
   getUserReviews: (userId) => apiClient.get(`/reviews/users/${userId}/reviews`),
   createUserReview: (userId, reviewData) => apiClient.post(`/reviews/users/${userId}/reviews`, reviewData),
-  updateUserProfile: (profileData) => apiClient.put('/users/profile', profileData)
+  updateUserProfile: (formData) => {
+    const config = {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    };
+    return apiClient.put('/users/profile', formData, config);
+  }
 };
 
 // NEW: Question attachment services

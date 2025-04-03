@@ -436,3 +436,34 @@
   color: #4a5568;
   margin-top: 5px;
 }
+
+.profile-workplace {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background-color: #f1f5f9;
+  color: #4a5568;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+}
+
+.workplace-icon {
+  font-size: 1.1rem;
+}
+
+.profile-actions {
+  margin-top: 20px;
+}
+
+.edit-profile-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+}
+
+.edit-profile-btn::before {
+  content: '✏️';
+  font-size: 1.1rem;
+}

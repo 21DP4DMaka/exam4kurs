@@ -1,4 +1,4 @@
-// src/App.js - Fixed navigation issues for tag applications and user profiles
+// src/App.js - Updated with ProfileEditPage
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import Header from './components/Header';
@@ -8,6 +8,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import ProfessionalProfilePage from './pages/ProfessionalProfilePage';
+import ProfileEditPage from './pages/ProfileEditPage';
 import AdminTagApplicationsPage from './pages/AdminTagApplicationsPage';
 import AdminUsersPage from './pages/AdminUsersPage';
 import QuestionsPage from './pages/QuestionsPage';
@@ -169,6 +170,13 @@ function App() {
           setCurrentPage={setCurPage} 
           handleViewQuestion={handleViewQuestion} 
         />;
+      case 'edit-profile':
+        // Check if user is logged in
+        return isLoggedIn ? 
+          <ProfileEditPage 
+            setCurrentPage={setCurPage} 
+          /> : 
+          <LoginPage onLogin={handleLogin} />;
       case 'admin-tag-applications':
         // Check if user is administrator
         if (!isLoggedIn) {

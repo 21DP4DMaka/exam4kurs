@@ -113,57 +113,75 @@ function UserProfilePage({ profileUserId, currentUser, setCurrentPage }) {
         </div>
         
         <div className="profile-header">
-          <div className="profile-avatar">
-            <img 
-              src={profileUser.profileImage || "https://via.placeholder.com/150"} 
-              alt={`${profileUser.username} profila attēls`}
-            />
-          </div>
-          
-          <div className="profile-info">
-            <h2>{profileUser.username}</h2>
-            {profileUser.email && (
-                <div className="profile-email">
-                <span>{formatEmail(profileUser.email)}</span>
-                </div>
-            )}
-            <div className="profile-meta">
-              <span className="profile-role">
-                {profileUser.role === 'admin' ? 'Administrators' : 
-                 profileUser.role === 'power' ? 'Profesionālis' : 'Lietotājs'}
+  <div className="profile-avatar">
+    <img 
+      src={profileUser.profileImage || "https://via.placeholder.com/150"} 
+      alt={`${profileUser.username} profila attēls`}
+    />
+  </div>
+  
+  <div className="	">
+    <h2>{profileUser.username}</h2>
+    {profileUser.email && (
+      <div className="profile-email">
+        <span>{formatEmail(profileUser.email)}</span>
+      </div>
+    )}
+    <div className="profile-meta">
+      <span className="profile-role">
+        {profileUser.role === 'admin' ? 'Administrators' : 
+         profileUser.role === 'power' ? 'Profesionālis' : 'Lietotājs'}
+      </span>
+      {/* Display workplace if exists and user is professional */}
+      {profileUser.role === 'power' && profileUser.ProfessionalProfile?.workplace && (
+        <span className="profile-workplace">
+          <i className="workplace-icon">🏢</i> {profileUser.ProfessionalProfile.workplace}
+        </span>
+      )}
+      {averageRating > 0 && (
+        <div className="profile-rating">
+          <div className="stars-display">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <span 
+                key={star} 
+                style={{ 
+                  color: star <= Math.round(averageRating) ? '#f59e0b' : '#e2e8f0',
+                  fontSize: '1.2rem'
+                }}
+              >
+                {star <= Math.round(averageRating) ? '★' : '☆'}
               </span>
-              {averageRating > 0 && (
-                <div className="profile-rating">
-                  <div className="stars-display">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <span 
-                        key={star} 
-                        style={{ 
-                          color: star <= Math.round(averageRating) ? '#f59e0b' : '#e2e8f0',
-                          fontSize: '1.2rem'
-                        }}
-                      >
-                        {star <= Math.round(averageRating) ? '★' : '☆'}
-                      </span>
-                    ))}
-                  </div>
-                  <span className="rating-value">{averageRating.toFixed(1)}</span>
-                  <span className="reviews-count">({reviews.length} atsauksmes)</span>
-                </div>
-              )}
-              <span className="profile-date">
-                Reģistrējies: {formatDate(profileUser.createdAt)}
-              </span>
-            </div>
-            
-            {profileUser.bio && (
-              <div className="profile-bio">
-                <h3>Par mani</h3>
-                <p>{profileUser.bio}</p>
-              </div>
-            )}
+            ))}
           </div>
+          <span className="rating-value">{averageRating.toFixed(1)}</span>
+          <span className="reviews-count">({reviews.length} atsauksmes)</span>
         </div>
+      )}
+      <span className="profile-date">
+        Reģistrējies: {formatDate(profileUser.createdAt)}
+      </span>
+    </div>
+    
+    {profileUser.bio && (
+      <div className="profile-bio">
+        <h3>Par mani</h3>
+        <p>{profileUser.bio}</p>
+      </div>
+    )}
+    
+    {/* Add edit profile button if viewing own profile */}
+    {currentUser && currentUser.id === profileUser.id && (
+      <div className="profile-actions">
+        <button 
+          className="btn btn-outline edit-profile-btn"
+          onClick={() => setCurrentPage('edit-profile')}
+        >
+          Rediģēt profilu
+        </button>
+      </div>
+    )}
+  </div>
+</div>
         
         <div className="profile-content">
           <div className="profile-main">

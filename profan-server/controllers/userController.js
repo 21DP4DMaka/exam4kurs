@@ -361,5 +361,111 @@ exports.getUserAnswers = async (req, res) => {
     res.status(500).json({ message: 'Servera kļūda iegūstot lietotāja atbildes' });
   }
 };
+// Update profile endpoint
+exports.updateProfile = async (req, res) => {
+  const t = await sequelize.transaction();
+  
+  try {
+    const userId = req.user.id;
+    let profileImagePath = null;
+    
+    // Process profile image if uploaded
+    if (req.files && req.files.profileImage) {
+      const profileImage = req.files.profileImage;
+      
+      // Validate file type
+      if (!profileImage.mimetype.startsWith('image/')) {
+        await t.rollback();
+        return res.status(400).json({ message: 'Failam jābūt attēla formātā' });
+      }
+      
+      // Validate file size (max 2MB)
+      if (profileImage.size > 2 * 1024 * 1024) {
+        await t.rollback();
+        return res.status(400).json({ message: 'Attēla izmērs nedrīkst pārsniegt 2MB' });
+      }
+      
+      // Create uploads directory if it doesn't exist
+      const uploadsDir = path.join(__dirname, '../uploads/profile-images');
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+      
+      // Generate unique filename
+      const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1E9)}`;
+      const fileExtension = profileImage.name.split('.').pop();
+      const filename = `profile-${userId}-${uniqueSuffix}.${fileExtension}`;
+      const filePath = path.join(uploadsDir, filename);
+      
+      // Save the file
+      await profileImage.mv(filePath);
+      
+      // Set the path for database
+      profileImagePath = `/uploads/profile-images/${filename}`;
+    }
+    
+    // Find the user
+    const user = await User.findByPk(userId);
+    
+    if (!user) {
+      await t.rollback();
+      return res.status(404).json({ message: 'Lietotājs nav atrasts' });
+    }
+    
+    // Extract profile data
+    const { username, bio } = req.body;
+    
+    // Update user profile data
+    await user.update({
+      username: username || user.username,
+      bio: bio !== undefined ? bio : user.bio,
+      profileImage: profileImagePath || user.profileImage
+    }, { transaction: t });
+    
+    // Update professional profile if exists and user is professional
+    if (req.body.professionalData && (user.role === 'power' || user.role === 'admin')) {
+      let profile = await ProfessionalProfile.findOne({ where: { userId } });
+      
+      const { workplace } = req.body.professionalData;
+      
+      if (profile) {
+        // Update existing profile
+        await profile.update({
+          education: req.body.professionalData.education || profile.education,
+          workplace: workplace !== undefined ? workplace : profile.workplace
+        }, { transaction: t });
+      } else {
+        // Create new profile
+        profile = await ProfessionalProfile.create({
+          userId,
+          education: req.body.professionalData.education || null,
+          workplace: workplace || null
+        }, { transaction: t });
+      }
+    }
+    
+    await t.commit();
+    
+    // Return updated user data
+    const updatedUser = await User.findByPk(userId, {
+      attributes: { exclude: ['password'] },
+      include: [
+        {
+          model: ProfessionalProfile,
+          required: false
+        }
+      ]
+    });
+    
+    res.json({
+      message: 'Profils veiksmīgi atjaunināts',
+      user: updatedUser
+    });
+  } catch (error) {
+    await t.rollback();
+    console.error('Error updating profile:', error);
+    res.status(500).json({ message: 'Servera kļūda atjauninot profilu' });
+  }
+};
 
-// Then add this to the routes/users.js file:
+
