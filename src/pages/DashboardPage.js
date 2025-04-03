@@ -8,7 +8,9 @@ function DashboardPage({ user: passedUser, setCurrentPage, handleViewQuestion })
     totalQuestions: 0,
     answeredQuestions: 0,
     pendingQuestions: 0,
-    unreadNotifications: 0
+    unreadNotifications: 0,
+    askedQuestions: 0,    // For regular users
+    answeredCount: 0      // For professional users
   });
   
   const [questions, setQuestions] = useState([]);
@@ -63,18 +65,58 @@ function DashboardPage({ user: passedUser, setCurrentPage, handleViewQuestion })
           try {
             const reviewsResponse = await userService.getUserReviews(user.id);
             setReviews(reviewsResponse.data.reviews || []);
+            
+            // Load how many questions this professional has answered
+            const answersResponse = await userService.getUserAnswers(user.id);
+            const answeredCount = answersResponse.data.answers ? answersResponse.data.answers.length : 0;
+            
+            // Uzstādīt statistiku ar atbildēto jautājumu skaitu profesionālim
+            setStats({
+              totalQuestions: questionsResponse.data.totalItems,
+              answeredQuestions: questionsResponse.data.questions.filter(q => q.status === 'answered').length,
+              pendingQuestions: questionsResponse.data.questions.filter(q => q.status === 'open').length,
+              unreadNotifications: notificationsResponse.data.unreadCount,
+              answeredCount: answeredCount // Atbildēto jautājumu skaits profesionālim
+            });
           } catch (error) {
-            console.error('Kļūda ielādējot atsauksmes:', error);
+            console.error('Kļūda ielādējot atsauksmes vai atbildes:', error);
+            
+            // Set stats without answers count if there was an error
+            setStats({
+              totalQuestions: questionsResponse.data.totalItems,
+              answeredQuestions: questionsResponse.data.questions.filter(q => q.status === 'answered').length,
+              pendingQuestions: questionsResponse.data.questions.filter(q => q.status === 'open').length,
+              unreadNotifications: notificationsResponse.data.unreadCount,
+              answeredCount: 0
+            });
+          }
+        } else {
+          // For regular users, show asked questions count
+          try {
+            const userQuestionsResponse = await questionService.getUserQuestions(user.id);
+            const askedQuestions = userQuestionsResponse.data.questions ? userQuestionsResponse.data.questions.length : 0;
+            
+            // Uzstādīt statistiku ar uzdoto jautājumu skaitu parastajam lietotājam
+            setStats({
+              totalQuestions: questionsResponse.data.totalItems,
+              answeredQuestions: questionsResponse.data.questions.filter(q => q.status === 'answered').length,
+              pendingQuestions: questionsResponse.data.questions.filter(q => q.status === 'open').length,
+              unreadNotifications: notificationsResponse.data.unreadCount,
+              askedQuestions: askedQuestions // Uzdoto jautājumu skaits parastajam lietotājam
+            });
+          } catch (error) {
+            console.error('Kļūda ielādējot lietotāja jautājumus:', error);
+            
+            // Set stats without asked questions count if there was an error
+            setStats({
+              totalQuestions: questionsResponse.data.totalItems,
+              answeredQuestions: questionsResponse.data.questions.filter(q => q.status === 'answered').length,
+              pendingQuestions: questionsResponse.data.questions.filter(q => q.status === 'open').length,
+              unreadNotifications: notificationsResponse.data.unreadCount,
+              askedQuestions: 0
+            });
           }
         }
-        
-        // Uzstādīt statistiku
-        setStats({
-          totalQuestions: questionsResponse.data.totalItems,
-          answeredQuestions: questionsResponse.data.questions.filter(q => q.status === 'answered').length,
-          pendingQuestions: questionsResponse.data.questions.filter(q => q.status === 'open').length,
-          unreadNotifications: notificationsResponse.data.unreadCount
-        });
         
         setIsLoading(false);
       } catch (error) {
@@ -157,7 +199,7 @@ function DashboardPage({ user: passedUser, setCurrentPage, handleViewQuestion })
             <h3>{user.username}</h3>
             <p className="user-type">
               {user.role === 'admin' ? 'Administrators' : 
-               user.role === 'power' ? 'Profesionāls' : 'Lietotājs'}
+               user.role === 'power' ? 'Profesionālis' : 'Lietotājs'}
             </p>
           </div>
         </div>
@@ -172,13 +214,23 @@ function DashboardPage({ user: passedUser, setCurrentPage, handleViewQuestion })
               <div className="stat-label">Kopā jautājumi</div>
             </div>
             <div className="stat-card">
-              <div className="stat-value">{stats.answeredQuestions}</div>
-              <div className="stat-label">Atbildēti</div>
-            </div>
-            <div className="stat-card">
               <div className="stat-value">{stats.pendingQuestions}</div>
               <div className="stat-label">Gaidoši</div>
             </div>
+            {/* New stat card for professional users - showing answered questions count */}
+            {(user.role === 'power' || user.role === 'admin') && (
+              <div className="stat-card">
+                <div className="stat-value">{stats.answeredCount}</div>
+                <div className="stat-label">Jūsu atbildes</div>
+              </div>
+            )}
+            {/* New stat card for regular users - showing asked questions count */}
+            {user.role === 'regular' && (
+              <div className="stat-card">
+                <div className="stat-value">{stats.askedQuestions}</div>
+                <div className="stat-label">Jūsu jautājumi</div>
+              </div>
+            )}
             <div className="stat-card">
               <div className="stat-value">{stats.unreadNotifications}</div>
               <div className="stat-label">Nelasīti paziņojumi</div>

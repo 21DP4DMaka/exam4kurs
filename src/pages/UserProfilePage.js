@@ -335,31 +335,41 @@ function UserProfilePage({ profileUserId, currentUser, setCurrentPage }) {
             )}
             
             {/* User stats */}
-            <div className="dashboard-card user-stats">
-              <div className="card-header">
-                <h3>Statistika</h3>
-              </div>
-              <div className="card-content">
-                {profileUser.role === 'regular' && (
-                  <div className="stat-item">
-                    <span className="stat-label">Jautājumi:</span>
-                    <span className="stat-value">{userQuestions ? userQuestions.length : 0}</span>
+           
+
+                <div className="dashboard-card user-stats">
+                  <div className="card-header">
+                    <h3>Statistika</h3>
                   </div>
-                )}
-                {profileUser.role === 'power' && (
-                  <div className="stat-item">
-                    <span className="stat-label">Atbildes:</span>
-                    <span className="stat-value">{userAnswers ? userAnswers.length : 0}</span>
+                  <div className="card-content">
+                    {profileUser.role === 'regular' && (
+                      <div className="stat-item">
+                        <span className="stat-label">Jautājumi:</span>
+                        <span className="stat-value">{userQuestions ? userQuestions.length : 0}</span>
+                      </div>
+                    )}
+                    {(profileUser.role === 'power' || profileUser.role === 'admin') && (
+                      <>
+                        <div className="stat-item">
+                          <span className="stat-label">Atbildes:</span>
+                          <span className="stat-value">{userAnswers ? userAnswers.length : 0}</span>
+                        </div>
+                        <div className="stat-item">
+                          <span className="stat-label">Pieņemtas atbildes:</span>
+                          <span className="stat-value">
+                            {userAnswers ? userAnswers.filter(answer => answer.isAccepted).length : 0}
+                          </span>
+                        </div>
+                      </>
+                    )}
+                    {(profileUser.role === 'power' || profileUser.role === 'admin') && (
+                      <div className="stat-item">
+                        <span className="stat-label">Vidējais vērtējums:</span>
+                        <span className="stat-value">{averageRating > 0 ? averageRating.toFixed(1) : 'Nav'}</span>
+                      </div>
+                    )}
                   </div>
-                )}
-                {profileUser.role === 'power' && (
-                  <div className="stat-item">
-                    <span className="stat-label">Vidējais vērtējums:</span>
-                    <span className="stat-value">{averageRating > 0 ? averageRating.toFixed(1) : 'Nav'}</span>
-                  </div>
-                )}
-              </div>
-            </div>
+                </div>
           </div>
         </div>
       </div>
