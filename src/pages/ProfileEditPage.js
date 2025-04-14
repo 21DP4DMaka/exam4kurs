@@ -1,3 +1,4 @@
+// src/pages/ProfileEditPage.js
 import React, { useState, useEffect } from 'react';
 import './DashboardPage.css';
 import './UserProfilePage.css';
@@ -10,7 +11,7 @@ function ProfileEditPage({ setCurrentPage }) {
     username: '',
     email: '',
     bio: '',
-    workplace: '', // Added workplace field for professionals
+    workplace: '',
     profileImage: '' 
   });
   const [avatar, setAvatar] = useState(null);
@@ -88,25 +89,25 @@ function ProfileEditPage({ setCurrentPage }) {
     try {
       // Create form data to send to the server
       const updateData = new FormData();
-      updateData.append('username', formData.username);
-      updateData.append('bio', formData.bio);
-      
-      // Only include workplace field for professionals
-      if (user.role === 'power' || user.role === 'admin') {
-        updateData.append('professionalData[workplace]', formData.workplace);
-      }
-      
-      // Add avatar if selected
-      if (avatar) {
-        updateData.append('profileImage', avatar);
-      }
+updateData.append('username', formData.username);
+updateData.append('bio', formData.bio);
+
+// Only include workplace field for professionals
+if (user.role === 'power' || user.role === 'admin') {
+  updateData.append('professionalData', JSON.stringify({ workplace: formData.workplace }));
+}
+
+// Add avatar if selected
+if (avatar) {
+  updateData.append('profileImage', avatar);
+}
       
       // Send update request
       const response = await userService.updateUserProfile(updateData);
       
       setSuccess('Profils veiksmīgi atjaunināts!');
       
-      // Auto-hide success message after 3 seconds
+      // Auto-hide success message after 3 seconds and navigate back
       setTimeout(() => {
         setSuccess(null);
         // After successful update, navigate back to user profile

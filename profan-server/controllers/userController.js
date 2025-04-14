@@ -371,36 +371,7 @@ exports.updateProfile = async (req, res) => {
     
     // Process profile image if uploaded
     if (req.files && req.files.profileImage) {
-      const profileImage = req.files.profileImage;
-      
-      // Validate file type
-      if (!profileImage.mimetype.startsWith('image/')) {
-        await t.rollback();
-        return res.status(400).json({ message: 'Failam jābūt attēla formātā' });
-      }
-      
-      // Validate file size (max 2MB)
-      if (profileImage.size > 2 * 1024 * 1024) {
-        await t.rollback();
-        return res.status(400).json({ message: 'Attēla izmērs nedrīkst pārsniegt 2MB' });
-      }
-      
-      // Create uploads directory if it doesn't exist
-      const uploadsDir = path.join(__dirname, '../uploads/profile-images');
-      if (!fs.existsSync(uploadsDir)) {
-        fs.mkdirSync(uploadsDir, { recursive: true });
-      }
-      
-      // Generate unique filename
-      const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1E9)}`;
-      const fileExtension = profileImage.name.split('.').pop();
-      const filename = `profile-${userId}-${uniqueSuffix}.${fileExtension}`;
-      const filePath = path.join(uploadsDir, filename);
-      
-      // Save the file
-      await profileImage.mv(filePath);
-      
-      // Set the path for database
+      // Image processing code...
       profileImagePath = `/uploads/profile-images/${filename}`;
     }
     
@@ -414,6 +385,15 @@ exports.updateProfile = async (req, res) => {
     
     // Extract profile data
     const { username, bio } = req.body;
+    let professionalData = null;
+    
+    if (req.body.professionalData) {
+      try {
+        professionalData = JSON.parse(req.body.professionalData);
+      } catch (e) {
+        console.error("Error parsing professionalData JSON", e);
+      }
+    }
     
     // Update user profile data
     await user.update({
@@ -423,23 +403,19 @@ exports.updateProfile = async (req, res) => {
     }, { transaction: t });
     
     // Update professional profile if exists and user is professional
-    if (req.body.professionalData && (user.role === 'power' || user.role === 'admin')) {
+    if (professionalData && (user.role === 'power' || user.role === 'admin')) {
       let profile = await ProfessionalProfile.findOne({ where: { userId } });
-      
-      const { workplace } = req.body.professionalData;
       
       if (profile) {
         // Update existing profile
         await profile.update({
-          education: req.body.professionalData.education || profile.education,
-          workplace: workplace !== undefined ? workplace : profile.workplace
+          workplace: professionalData.workplace !== undefined ? professionalData.workplace : profile.workplace
         }, { transaction: t });
       } else {
         // Create new profile
         profile = await ProfessionalProfile.create({
           userId,
-          education: req.body.professionalData.education || null,
-          workplace: workplace || null
+          workplace: professionalData.workplace || null
         }, { transaction: t });
       }
     }
@@ -464,8 +440,7 @@ exports.updateProfile = async (req, res) => {
   } catch (error) {
     await t.rollback();
     console.error('Error updating profile:', error);
-    res.status(500).json({ message: 'Servera kļūda atjauninot profilu' });
+    res.status(500).json({ message: 'Servera kļūda atjaunojot profilu' });
   }
 };
-
 

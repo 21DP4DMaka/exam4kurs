@@ -113,75 +113,82 @@ function UserProfilePage({ profileUserId, currentUser, setCurrentPage }) {
         </div>
         
         <div className="profile-header">
-  <div className="profile-avatar">
-    <img 
-      src={profileUser.profileImage || "https://via.placeholder.com/150"} 
-      alt={`${profileUser.username} profila attēls`}
-    />
-  </div>
-  
-  <div className="	">
-    <h2>{profileUser.username}</h2>
-    {profileUser.email && (
-      <div className="profile-email">
-        <span>{formatEmail(profileUser.email)}</span>
-      </div>
-    )}
-    <div className="profile-meta">
-      <span className="profile-role">
-        {profileUser.role === 'admin' ? 'Administrators' : 
-         profileUser.role === 'power' ? 'Profesionālis' : 'Lietotājs'}
-      </span>
-      {/* Display workplace if exists and user is professional */}
-      {profileUser.role === 'power' && profileUser.ProfessionalProfile?.workplace && (
-        <span className="profile-workplace">
-          <i className="workplace-icon">🏢</i> {profileUser.ProfessionalProfile.workplace}
-        </span>
-      )}
-      {averageRating > 0 && (
-        <div className="profile-rating">
-          <div className="stars-display">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <span 
-                key={star} 
-                style={{ 
-                  color: star <= Math.round(averageRating) ? '#f59e0b' : '#e2e8f0',
-                  fontSize: '1.2rem'
-                }}
-              >
-                {star <= Math.round(averageRating) ? '★' : '☆'}
-              </span>
-            ))}
+          <div className="profile-avatar">
+            <img 
+              src={profileUser.profileImage || "https://via.placeholder.com/150"} 
+              alt={`${profileUser.username} profila attēls`}
+            />
           </div>
-          <span className="rating-value">{averageRating.toFixed(1)}</span>
-          <span className="reviews-count">({reviews.length} atsauksmes)</span>
+          
+          <div className="profile-info">
+            <div className="profile-name-container">
+              <h2>{profileUser.username}</h2>
+              
+              {/* Display workplace next to username if exists and user is professional */}
+              {profileUser.role === 'power' && profileUser.ProfessionalProfile?.workplace && (
+                <span className="profile-workplace">
+                  <i className="workplace-icon">🏢</i> {profileUser.ProfessionalProfile.workplace}
+                </span>
+              )}
+            </div>
+            
+            {profileUser.email && (
+              <div className="profile-email">
+                <span>{formatEmail(profileUser.email)}</span>
+              </div>
+            )}
+            
+            <div className="profile-meta">
+              <span className="profile-role">
+                {profileUser.role === 'admin' ? 'Administrators' : 
+                 profileUser.role === 'power' ? 'Profesionālis' : 'Lietotājs'}
+              </span>
+              
+              {averageRating > 0 && (
+                <div className="profile-rating">
+                  <div className="stars-display">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <span 
+                        key={star} 
+                        style={{ 
+                          color: star <= Math.round(averageRating) ? '#f59e0b' : '#e2e8f0',
+                          fontSize: '1.2rem'
+                        }}
+                      >
+                        {star <= Math.round(averageRating) ? '★' : '☆'}
+                      </span>
+                    ))}
+                  </div>
+                  <span className="rating-value">{averageRating.toFixed(1)}</span>
+                  <span className="reviews-count">({reviews.length} atsauksmes)</span>
+                </div>
+              )}
+              <span className="profile-date">
+                Reģistrējies: {formatDate(profileUser.createdAt)}
+              </span>
+            </div>
+            
+            {/* Add edit profile button if viewing own profile */}
+            {currentUser && currentUser.id === profileUser.id && (
+              <div className="profile-actions">
+                <button 
+                  className="btn btn-primary edit-profile-btn"
+                  onClick={() => setCurrentPage('edit-profile')}
+                >
+                  Rediģēt profilu
+                </button>
+              </div>
+            )}
+          </div>
         </div>
-      )}
-      <span className="profile-date">
-        Reģistrējies: {formatDate(profileUser.createdAt)}
-      </span>
-    </div>
-    
-    {profileUser.bio && (
-      <div className="profile-bio">
-        <h3>Par mani</h3>
-        <p>{profileUser.bio}</p>
-      </div>
-    )}
-    
-    {/* Add edit profile button if viewing own profile */}
-    {currentUser && currentUser.id === profileUser.id && (
-  <div className="profile-actions">
-    <button 
-      className="btn btn-outline edit-profile-btn"
-      onClick={() => setCurrentPage('edit-profile')}
-    >
-      Rediģēt profilu
-    </button>
-  </div>
-)}
-  </div>
-</div>
+        
+        {/* Display bio section above content if exists */}
+        {profileUser.bio && (
+          <div className="profile-bio-container">
+            <h3>Par mani</h3>
+            <p>{profileUser.bio}</p>
+          </div>
+        )}
         
         <div className="profile-content">
           <div className="profile-main">
@@ -353,41 +360,39 @@ function UserProfilePage({ profileUserId, currentUser, setCurrentPage }) {
             )}
             
             {/* User stats */}
-           
-
-                <div className="dashboard-card user-stats">
-                  <div className="card-header">
-                    <h3>Statistika</h3>
+            <div className="dashboard-card user-stats">
+              <div className="card-header">
+                <h3>Statistika</h3>
+              </div>
+              <div className="card-content">
+                {profileUser.role === 'regular' && (
+                  <div className="stat-item">
+                    <span className="stat-label">Jautājumi:</span>
+                    <span className="stat-value">{userQuestions ? userQuestions.length : 0}</span>
                   </div>
-                  <div className="card-content">
-                    {profileUser.role === 'regular' && (
-                      <div className="stat-item">
-                        <span className="stat-label">Jautājumi:</span>
-                        <span className="stat-value">{userQuestions ? userQuestions.length : 0}</span>
-                      </div>
-                    )}
-                    {(profileUser.role === 'power' || profileUser.role === 'admin') && (
-                      <>
-                        <div className="stat-item">
-                          <span className="stat-label">Atbildes:</span>
-                          <span className="stat-value">{userAnswers ? userAnswers.length : 0}</span>
-                        </div>
-                        <div className="stat-item">
-                          <span className="stat-label">Pieņemtas atbildes:</span>
-                          <span className="stat-value">
-                            {userAnswers ? userAnswers.filter(answer => answer.isAccepted).length : 0}
-                          </span>
-                        </div>
-                      </>
-                    )}
-                    {(profileUser.role === 'power' || profileUser.role === 'admin') && (
-                      <div className="stat-item">
-                        <span className="stat-label">Vidējais vērtējums:</span>
-                        <span className="stat-value">{averageRating > 0 ? averageRating.toFixed(1) : 'Nav'}</span>
-                      </div>
-                    )}
+                )}
+                {(profileUser.role === 'power' || profileUser.role === 'admin') && (
+                  <>
+                    <div className="stat-item">
+                      <span className="stat-label">Atbildes:</span>
+                      <span className="stat-value">{userAnswers ? userAnswers.length : 0}</span>
+                    </div>
+                    <div className="stat-item">
+                      <span className="stat-label">Pieņemtas atbildes:</span>
+                      <span className="stat-value">
+                        {userAnswers ? userAnswers.filter(answer => answer.isAccepted).length : 0}
+                      </span>
+                    </div>
+                  </>
+                )}
+                {(profileUser.role === 'power' || profileUser.role === 'admin') && (
+                  <div className="stat-item">
+                    <span className="stat-label">Vidējais vērtējums:</span>
+                    <span className="stat-value">{averageRating > 0 ? averageRating.toFixed(1) : 'Nav'}</span>
                   </div>
-                </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
