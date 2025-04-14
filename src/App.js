@@ -120,6 +120,7 @@ function App() {
     setCurrentPage('user-profile');
   };
   
+  
   // Custom setCurrentPage function to handle additional parameters
   const setCurPage = (page, param = null) => {
     console.log(`Setting current page to: ${page}, with param: ${param}`);

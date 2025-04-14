@@ -100,7 +100,11 @@ export const userService = {
   getUserAnswers: (userId) => apiClient.get(`/users/${userId}/answers`),
   getUserReviews: (userId) => apiClient.get(`/reviews/users/${userId}/reviews`),
   createUserReview: (userId, reviewData) => apiClient.post(`/reviews/users/${userId}/reviews`, reviewData),
+
   updateUserProfile: (formData) => {
+    // Log the form data keys to debug
+    console.log('Form data keys being sent:', Array.from(formData.keys()));
+    
     const config = {
       headers: {
         'Content-Type': 'multipart/form-data',
@@ -110,6 +114,7 @@ export const userService = {
     return apiClient.put('/users/profile', formData, config);
   }
 };
+
 
 // NEW: Question attachment services
 export const questionAttachmentService = {

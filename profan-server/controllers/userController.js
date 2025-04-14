@@ -1,5 +1,7 @@
 const { User, Question, Answer, ProfessionalProfile, Notification, Tag, sequelize } = require('../models');
 const { Op } = require('sequelize');
+const fs = require('fs');
+const path = require('path');
 
 // Get all users with pagination (Admin only)
 exports.getAllUsers = async (req, res) => {
@@ -237,8 +239,6 @@ exports.reportUser = async (req, res) => {
   }
 };
 
-// Add this function to userController.js
-
 exports.getUserQuestions = async (req, res) => {
   try {
     const userId = req.params.id;
@@ -318,8 +318,6 @@ exports.getUserById = async (req, res) => {
   }
 };
 
-// Add this to userController.js in profan-server/controllers/userController.js
-
 exports.getUserAnswers = async (req, res) => {
   try {
     const userId = req.params.id;
@@ -361,13 +359,17 @@ exports.getUserAnswers = async (req, res) => {
     res.status(500).json({ message: 'Servera kļūda iegūstot lietotāja atbildes' });
   }
 };
-// Update profile endpoint
+
+// Update profile endpoint - REVISED TO FIX PROFILE EDITING
 exports.updateProfile = async (req, res) => {
   const t = await sequelize.transaction();
   
   try {
     const userId = req.user.id;
     let profileImagePath = null;
+    
+    console.log("Received profile update request with body:", req.body);
+    console.log("Received files:", req.files ? Object.keys(req.files) : "No files");
     
     // Process profile image if uploaded
     if (req.files && req.files.profileImage) {
@@ -401,6 +403,7 @@ exports.updateProfile = async (req, res) => {
       
       // Set profile image path for database
       profileImagePath = `/uploads/profile-images/${filename}`;
+      console.log("Saved profile image to:", profileImagePath);
     }
     
     // Find the user
@@ -422,6 +425,12 @@ exports.updateProfile = async (req, res) => {
         console.error("Error parsing professionalData JSON", e);
       }
     }
+    
+    console.log("Updating user with data:", {
+      username: username || user.username,
+      bio: bio !== undefined ? bio : user.bio,
+      profileImage: profileImagePath || user.profileImage
+    });
     
     // Update user profile data
     await user.update({
@@ -471,4 +480,3 @@ exports.updateProfile = async (req, res) => {
     res.status(500).json({ message: 'Servera kļūda atjaunojot profilu' });
   }
 };
-

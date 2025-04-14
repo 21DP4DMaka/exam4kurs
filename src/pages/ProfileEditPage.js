@@ -1,4 +1,3 @@
-// src/pages/ProfileEditPage.js - Fixed version
 import React, { useState, useEffect } from 'react';
 import './DashboardPage.css';
 import './UserProfilePage.css';
@@ -58,6 +57,7 @@ function ProfileEditPage({ setCurrentPage }) {
   // Handle form input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
+    console.log(`Field ${name} changed to: ${value}`);
     setFormData({
       ...formData,
       [name]: value
@@ -68,6 +68,7 @@ function ProfileEditPage({ setCurrentPage }) {
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      console.log("Selected file:", file.name, file.type, file.size);
       setAvatar(file);
       
       // Create preview URL
@@ -289,7 +290,7 @@ function ProfileEditPage({ setCurrentPage }) {
               >
                 {isSaving ? 'Saglabā...' : 'Saglabāt profilu'}
               </button>
-            </div>
+            </div>ф
           </form>
         </div>
       </div>
