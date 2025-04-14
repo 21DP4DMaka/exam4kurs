@@ -371,7 +371,35 @@ exports.updateProfile = async (req, res) => {
     
     // Process profile image if uploaded
     if (req.files && req.files.profileImage) {
-      // Image processing code...
+      const profileImage = req.files.profileImage;
+      
+      // Validate file type (only image formats)
+      if (!profileImage.mimetype.startsWith('image/')) {
+        await t.rollback();
+        return res.status(400).json({ message: 'Atļauti tikai attēlu formāti (JPG, PNG)' });
+      }
+      
+      // Validate file size (max 2MB)
+      if (profileImage.size > 2 * 1024 * 1024) {
+        await t.rollback();
+        return res.status(400).json({ message: 'Maksimālais attēla izmērs ir 2MB' });
+      }
+      
+      // Create directory if it doesn't exist
+      const uploadDir = path.join(__dirname, '../uploads/profile-images');
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      
+      // Generate unique filename
+      const timestamp = Date.now();
+      const filename = `${userId}_${timestamp}_${profileImage.name.replace(/\s+/g, '_')}`;
+      const filePath = path.join(uploadDir, filename);
+      
+      // Save file
+      await profileImage.mv(filePath);
+      
+      // Set profile image path for database
       profileImagePath = `/uploads/profile-images/${filename}`;
     }
     

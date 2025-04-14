@@ -1,4 +1,4 @@
-// src/pages/ProfileEditPage.js
+// src/pages/ProfileEditPage.js - Fixed version
 import React, { useState, useEffect } from 'react';
 import './DashboardPage.css';
 import './UserProfilePage.css';
@@ -89,18 +89,28 @@ function ProfileEditPage({ setCurrentPage }) {
     try {
       // Create form data to send to the server
       const updateData = new FormData();
-updateData.append('username', formData.username);
-updateData.append('bio', formData.bio);
+      updateData.append('username', formData.username);
+      updateData.append('bio', formData.bio || '');
 
-// Only include workplace field for professionals
-if (user.role === 'power' || user.role === 'admin') {
-  updateData.append('professionalData', JSON.stringify({ workplace: formData.workplace }));
-}
+      // Only include workplace field for professionals
+      if (user.role === 'power' || user.role === 'admin') {
+        updateData.append('professionalData', JSON.stringify({ 
+          workplace: formData.workplace || '' 
+        }));
+      }
 
-// Add avatar if selected
-if (avatar) {
-  updateData.append('profileImage', avatar);
-}
+      // Add avatar if selected
+      if (avatar) {
+        updateData.append('profileImage', avatar);
+        console.log('Adding profile image to form data:', avatar.name);
+      }
+      
+      console.log('Submitting profile update with data:', {
+        username: formData.username,
+        bio: formData.bio,
+        workplace: formData.workplace,
+        hasAvatar: !!avatar
+      });
       
       // Send update request
       const response = await userService.updateUserProfile(updateData);
@@ -168,7 +178,7 @@ if (avatar) {
             </div>
           )}
           
-          <form onSubmit={handleSubmit} className="profile-edit-form">
+          <form onSubmit={handleSubmit} className="profile-edit-form" encType="multipart/form-data">
             <div className="form-section">
               <h3>Profila informācija</h3>
               
