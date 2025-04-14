@@ -1,4 +1,4 @@
-// src/App.js - Updated with ProfileEditPage
+// src/App.js - Updated to fix the profile editing functionality
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import Header from './components/Header';

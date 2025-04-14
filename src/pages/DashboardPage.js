@@ -202,6 +202,12 @@ function DashboardPage({ user: passedUser, setCurrentPage, handleViewQuestion })
                user.role === 'power' ? 'Profesionālis' : 'Lietotājs'}
             </p>
           </div>
+          <button 
+  className="btn btn-outline"
+  onClick={() => setCurrentPage('user-profile', user.id)}
+>
+  Skatīt manu profilu
+</button>
         </div>
         
         <div className="dashboard-content">

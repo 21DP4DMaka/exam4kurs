@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './DashboardPage.css';
 import './UserProfilePage.css';
-import './ProfileEditPage.css'; // We'll create this CSS file
+import './ProfileEditPage.css';
 import { authService, userService } from '../services/api';
 
 function ProfileEditPage({ setCurrentPage }) {
@@ -109,6 +109,12 @@ function ProfileEditPage({ setCurrentPage }) {
       // Auto-hide success message after 3 seconds
       setTimeout(() => {
         setSuccess(null);
+        // After successful update, navigate back to user profile
+        if (user) {
+          setCurrentPage('user-profile', user.id);
+        } else {
+          setCurrentPage('dashboard');
+        }
       }, 3000);
     } catch (error) {
       console.error('Error updating profile:', error);

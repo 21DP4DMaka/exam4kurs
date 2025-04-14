@@ -171,15 +171,15 @@ function UserProfilePage({ profileUserId, currentUser, setCurrentPage }) {
     
     {/* Add edit profile button if viewing own profile */}
     {currentUser && currentUser.id === profileUser.id && (
-      <div className="profile-actions">
-        <button 
-          className="btn btn-outline edit-profile-btn"
-          onClick={() => setCurrentPage('edit-profile')}
-        >
-          Rediģēt profilu
-        </button>
-      </div>
-    )}
+  <div className="profile-actions">
+    <button 
+      className="btn btn-outline edit-profile-btn"
+      onClick={() => setCurrentPage('edit-profile')}
+    >
+      Rediģēt profilu
+    </button>
+  </div>
+)}
   </div>
 </div>
         
