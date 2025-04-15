@@ -59,6 +59,13 @@ const User = sequelize.define('User', {
         const salt = await bcrypt.genSalt(10);
         user.password = await bcrypt.hash(user.password, salt);
       }
+      
+      // Add this validation for profileImage - THIS IS A CRITICAL FIX
+      if (user.changed('profileImage') && 
+          typeof user.profileImage !== 'string' && 
+          user.profileImage !== null) {
+        throw new Error('profileImage must be a string or null');
+      }
     }
   }
 });

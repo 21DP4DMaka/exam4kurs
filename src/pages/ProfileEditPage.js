@@ -75,19 +75,19 @@ function ProfileEditPage({ setCurrentPage }) {
     });
   };
 
-  // Handle avatar file selection
+  // Handle avatar file selection - FIXED VERSION
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       // Validate file type
       if (!file.type.startsWith('image/')) {
-        setError('Lūdzu, izvēlieties attēla failu (JPG, PNG)');
+        setError('Please select an image file (JPG, PNG)');
         return;
       }
       
       // Validate file size (max 2MB)
       if (file.size > 2 * 1024 * 1024) {
-        setError('Attēla izmērs nedrīkst pārsniegt 2MB');
+        setError('Image size must not exceed 2MB');
         return;
       }
       
@@ -105,7 +105,7 @@ function ProfileEditPage({ setCurrentPage }) {
     }
   };
 
-  // Handle basic profile update (username, bio, avatar)
+  // Handle basic profile update (username, bio, avatar) - FIXED VERSION
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
     setIsSaving(true);
@@ -113,27 +113,36 @@ function ProfileEditPage({ setCurrentPage }) {
     setSuccess(null);
     
     try {
-      // Create form data to send to the server
+      // Create form data to send to the server - MAKE SURE THIS IS FormData!
       const updateData = new FormData();
+      
+      // Only append text fields that exist
       updateData.append('username', formData.username);
-      updateData.append('bio', formData.bio || '');
+      
+      // Only include bio if it's defined
+      if (formData.bio !== undefined) {
+        updateData.append('bio', formData.bio);
+      }
 
-      // Only include workplace field for professionals
+      // Only include workplace for professionals
       if (user.role === 'power' || user.role === 'admin') {
+        // IMPORTANT: Convert object to JSON string
         updateData.append('professionalData', JSON.stringify({ 
           workplace: formData.workplace || '' 
         }));
       }
 
-      // Add avatar if selected
+      // Add avatar only if selected
       if (avatar) {
         updateData.append('profileImage', avatar);
       }
       
+      console.log("Form data being sent:", Array.from(updateData.entries()));
+      
       // Send update request
       await userService.updateUserProfile(updateData);
       
-      setSuccess('Profils veiksmīgi atjaunināts!');
+      setSuccess('Profile updated successfully!');
       
       // Auto-hide success message after 3 seconds and navigate back
       setTimeout(() => {
@@ -150,7 +159,7 @@ function ProfileEditPage({ setCurrentPage }) {
       if (error.response && error.response.data && error.response.data.message) {
         setError(error.response.data.message);
       } else {
-        setError('Kļūda atjaunojot profilu. Lūdzu, mēģiniet vēlreiz.');
+        setError('Error updating profile. Please try again.');
       }
     } finally {
       setIsSaving(false);
