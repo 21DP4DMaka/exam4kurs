@@ -94,25 +94,47 @@ export const userService = {
   deleteUser: (userId) => apiClient.delete(`/users/${userId}`),
   reportUser: (userId, data) => apiClient.post(`/users/${userId}/report`, data),
   
+  
   // Functions for user profiles and reviews
   getUserById: (userId) => apiClient.get(`/users/${userId}`),
   getUserQuestions: (userId) => apiClient.get(`/users/${userId}/questions`),
   getUserAnswers: (userId) => apiClient.get(`/users/${userId}/answers`),
   getUserReviews: (userId) => apiClient.get(`/reviews/users/${userId}/reviews`),
   createUserReview: (userId, reviewData) => apiClient.post(`/reviews/users/${userId}/reviews`, reviewData),
-
+  updatePassword: (passwordData) => apiClient.put('/users/password', passwordData),
+  // Updated function for profile updates
   updateUserProfile: (formData) => {
-    // Log the form data keys to debug
-    console.log('Form data keys being sent:', Array.from(formData.keys()));
+    // Получаем токен авторизации
+    const token = localStorage.getItem('token');
     
+    // Проверяем, что formData является экземпляром FormData
+    if (!(formData instanceof FormData)) {
+      console.error('Error: formData must be an instance of FormData');
+      return Promise.reject(new Error('Invalid formData format'));
+    }
+    
+    // Логирование данных для отладки (можно удалить в продакшн)
+    console.log('Sending profile update with fields:', Array.from(formData.keys()));
+    for (let [key, value] of formData.entries()) {
+      if (key === 'profileImage') {
+        console.log('profileImage:', value.name, value.type, value.size, 'bytes');
+      } else {
+        console.log(`${key}:`, value);
+      }
+    }
+    
+    // Создаем конфигурацию запроса с правильными заголовками
+    // Важно! НЕ устанавливаем Content-Type вручную для multipart/form-data
     const config = {
       headers: {
-        'Content-Type': 'multipart/form-data',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+        'Authorization': `Bearer ${token}`
       }
     };
+    
+    // Отправляем запрос
     return apiClient.put('/users/profile', formData, config);
-  }
+  },
+
 };
 
 

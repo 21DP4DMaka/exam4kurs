@@ -37,6 +37,42 @@ router.get('/:id', async (req, res) => {
 
 // Get user's questions
 router.get('/:id/questions', userController.getUserQuestions);
+router.put('/password', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { currentPassword, newPassword } = req.body;
+    
+    // Validate input
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: 'Pašreizējā un jaunā parole ir obligātas' });
+    }
+    
+    // Find the user
+    const user = await User.findByPk(userId);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'Lietotājs nav atrasts' });
+    }
+    
+    // Verify current password
+    const isMatch = await user.comparePassword(currentPassword);
+    
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Pašreizējā parole nav pareiza' });
+    }
+    
+    // Update the password
+    user.password = newPassword;
+    await user.save();
+    
+    res.json({
+      message: 'Parole veiksmīgi atjaunināta'
+    });
+  } catch (error) {
+    console.error('Error updating password:', error);
+    res.status(500).json({ message: 'Servera kļūda atjaunojot paroli' });
+  }
+});
 
 // Получить профессиональные теги пользователя
 router.get('/:id/professional-tags', async (req, res) => {
@@ -81,7 +117,7 @@ router.put('/profile', authenticateToken, async (req, res) => {
     // Atjaunināt lietotāja datus
     await user.update({
       username: username || user.username,
-      bio: bio !== undefined ? bio : user.bio,
+      bio: bio || user.bio,
       profileImage: profileImage || user.profileImage
     });
     

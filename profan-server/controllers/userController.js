@@ -46,6 +46,7 @@ exports.getAllUsers = async (req, res) => {
 exports.banUser = async (req, res) => {
   const t = await sequelize.transaction();
   
+  
   try {
     const userId = req.params.id;
     const { reason } = req.body;
@@ -361,49 +362,49 @@ exports.getUserAnswers = async (req, res) => {
 };
 
 // Update profile endpoint - REVISED TO FIX PROFILE EDITING
-exports.updateProfile = async (req, res) => {
+exports.updateUserProfile = async (req, res) => {
   const t = await sequelize.transaction();
   
   try {
     const userId = req.user.id;
     let profileImagePath = null;
     
-    console.log("Received profile update request with body:", req.body);
-    console.log("Received files:", req.files ? Object.keys(req.files) : "No files");
+    console.log("Получен запрос на обновление профиля с телом:", req.body);
+    console.log("Получены файлы:", req.files ? Object.keys(req.files) : "Нет файлов");
     
-    // Process profile image if uploaded
+    // Обработка изображения профиля, если оно загружено
     if (req.files && req.files.profileImage) {
       const profileImage = req.files.profileImage;
       
-      // Validate file type (only image formats)
+      // Валидация типа файла (только форматы изображений)
       if (!profileImage.mimetype.startsWith('image/')) {
         await t.rollback();
-        return res.status(400).json({ message: 'Atļauti tikai attēlu formāti (JPG, PNG)' });
+        return res.status(400).json({ message: 'Разрешены только форматы изображений (JPG, PNG)' });
       }
       
-      // Validate file size (max 2MB)
+      // Валидация размера файла (макс. 2MB)
       if (profileImage.size > 2 * 1024 * 1024) {
         await t.rollback();
-        return res.status(400).json({ message: 'Maksimālais attēla izmērs ir 2MB' });
+        return res.status(400).json({ message: 'Максимальный размер изображения - 2MB' });
       }
       
-      // Create directory if it doesn't exist
+      // Создаем директорию, если она не существует
       const uploadDir = path.join(__dirname, '../uploads/profile-images');
       if (!fs.existsSync(uploadDir)) {
         fs.mkdirSync(uploadDir, { recursive: true });
       }
       
-      // Generate unique filename
+      // Генерируем уникальное имя файла
       const timestamp = Date.now();
       const filename = `${userId}_${timestamp}_${profileImage.name.replace(/\s+/g, '_')}`;
       const filePath = path.join(uploadDir, filename);
       
-      // Save file
+      // Сохраняем файл
       await profileImage.mv(filePath);
       
-      // Set profile image path for database
+      // Устанавливаем путь к изображению профиля для базы данных
       profileImagePath = `/uploads/profile-images/${filename}`;
-      console.log("Saved profile image to:", profileImagePath);
+      console.log("Сохранено изображение профиля:", profileImagePath);
     }
     
     // Find the user
@@ -411,9 +412,8 @@ exports.updateProfile = async (req, res) => {
     
     if (!user) {
       await t.rollback();
-      return res.status(404).json({ message: 'Lietotājs nav atrasts' });
+      return res.status(404).json({ message: 'Пользователь не найден' });
     }
-    
     // Extract profile data
     const { username, bio } = req.body;
     let professionalData = null;
@@ -422,15 +422,16 @@ exports.updateProfile = async (req, res) => {
       try {
         professionalData = JSON.parse(req.body.professionalData);
       } catch (e) {
-        console.error("Error parsing professionalData JSON", e);
+        console.error("Ошибка при парсинге JSON professionalData:", e);
       }
     }
-    
-    console.log("Updating user with data:", {
+
+     console.log("Обновление пользователя данными:", {
       username: username || user.username,
       bio: bio !== undefined ? bio : user.bio,
       profileImage: profileImagePath || user.profileImage
     });
+    
     
     // Update user profile data
     await user.update({
@@ -439,17 +440,17 @@ exports.updateProfile = async (req, res) => {
       profileImage: profileImagePath || user.profileImage
     }, { transaction: t });
     
-    // Update professional profile if exists and user is professional
+    // Обновляем профессиональный профиль, если он существует и пользователь - профессионал
     if (professionalData && (user.role === 'power' || user.role === 'admin')) {
       let profile = await ProfessionalProfile.findOne({ where: { userId } });
       
       if (profile) {
-        // Update existing profile
+        // Обновляем существующий профиль
         await profile.update({
           workplace: professionalData.workplace !== undefined ? professionalData.workplace : profile.workplace
         }, { transaction: t });
       } else {
-        // Create new profile
+        // Создаем новый профиль
         profile = await ProfessionalProfile.create({
           userId,
           workplace: professionalData.workplace || null
@@ -471,12 +472,12 @@ exports.updateProfile = async (req, res) => {
     });
     
     res.json({
-      message: 'Profils veiksmīgi atjaunināts',
+      message: 'Профиль успешно обновлен',
       user: updatedUser
     });
   } catch (error) {
     await t.rollback();
-    console.error('Error updating profile:', error);
-    res.status(500).json({ message: 'Servera kļūda atjaunojot profilu' });
+    console.error('Ошибка при обновлении профиля:', error);
+    res.status(500).json({ message: 'Ошибка сервера при обновлении профиля' });
   }
 };
