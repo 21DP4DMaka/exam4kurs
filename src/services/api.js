@@ -110,10 +110,10 @@ export const userService = {
       return Promise.reject(new Error('Invalid formData format'));
     }
     
-    // Получаем токен авторизации
+    // Get auth token
     const token = localStorage.getItem('token');
     
-    // Логирование данных для отладки
+    // Debug log the form data
     console.log('Sending profile update with fields:', Array.from(formData.keys()));
     for (let [key, value] of formData.entries()) {
       if (key === 'profileImage') {
@@ -123,19 +123,18 @@ export const userService = {
       }
     }
     
-    
-    // Создаем конфигурацию запроса с правильными заголовками
-    // Важно! НЕ устанавливаем Content-Type вручную для multipart/form-data
+    // Create request config with correct headers
+    // IMPORTANT: Do NOT set Content-Type for multipart/form-data
+    // Let the browser set it automatically with the boundary
     const config = {
       headers: {
         'Authorization': `Bearer ${token}`
       }
     };
     
-    // Отправляем запрос на сервер
+    // Send request to server
     return apiClient.put('/users/profile', formData, config);
-  },
-
+  }
 };
 
 

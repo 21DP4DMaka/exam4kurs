@@ -1,3 +1,4 @@
+// Complete fixed version of UserProfilePage.js
 import React, { useState, useEffect } from 'react';
 import './DashboardPage.css';
 import './UserProfilePage.css';
@@ -21,6 +22,16 @@ function UserProfilePage({ profileUserId, currentUser, setCurrentPage }) {
         // Fetch user profile
         const userResponse = await userService.getUserById(profileUserId);
         setProfileUser(userResponse.data);
+        
+        console.log("Profile data loaded:", userResponse.data);
+        
+        // If user has professional profile, log workplace info for debugging
+        if (userResponse.data.ProfessionalProfile) {
+          console.log("ProfessionalProfile data:", {
+            workplace: userResponse.data.ProfessionalProfile.workplace,
+            hasWorkplace: !!userResponse.data.ProfessionalProfile.workplace
+          });
+        }
         
         // Fetch user's questions
         const questionsResponse = await questionService.getUserQuestions(profileUserId);
@@ -103,6 +114,11 @@ function UserProfilePage({ profileUserId, currentUser, setCurrentPage }) {
     );
   }
   
+  // Check if user has workplace info
+  const hasWorkplace = profileUser.ProfessionalProfile && 
+                       profileUser.ProfessionalProfile.workplace && 
+                       profileUser.ProfessionalProfile.workplace.trim() !== '';
+  
   return (
     <div className="dashboard-page">
       <div className="container">
@@ -125,7 +141,7 @@ function UserProfilePage({ profileUserId, currentUser, setCurrentPage }) {
               <h2>{profileUser.username}</h2>
               
               {/* Display workplace next to username if exists and user is professional */}
-              {profileUser.role === 'power' && profileUser.ProfessionalProfile?.workplace && (
+              {hasWorkplace && (profileUser.role === 'power' || profileUser.role === 'admin') && (
                 <span className="profile-workplace">
                   <i className="workplace-icon">🏢</i> {profileUser.ProfessionalProfile.workplace}
                 </span>
