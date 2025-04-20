@@ -113,9 +113,10 @@ export const userService = {
       }
     };
     
-    console.log('Sending profile update with fields:');
+    // Debugging - log all entries
+    console.log('Sending form data:');
     for (let [key, value] of formData.entries()) {
-      console.log(`${key}:`, value);
+      console.log(`${key}: ${value}`);
     }
     
     return apiClient.put('/users/profile', formData, config);

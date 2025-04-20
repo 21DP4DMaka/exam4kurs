@@ -118,13 +118,14 @@ function ProfileEditPage({ setCurrentPage }) {
     try {
       // Create form data to send to the server - MAKE SURE THIS IS FormData!
       const updateData = new FormData();
-        updateData.append('username', formData.username);
-        if (formData.bio) {
-          updateData.append('bio', formData.bio);
-        }
-        if (avatar) {
-          updateData.append('profileImage', avatar);
-        }
+      
+      // Only append text fields that exist
+      updateData.append('username', formData.username);
+      
+      // Only include bio if it's defined
+      if (formData.bio !== undefined) {
+        updateData.append('bio', formData.bio);
+      }
 
       // Only include workplace for professionals
       if (user.role === 'power' || user.role === 'admin') {
