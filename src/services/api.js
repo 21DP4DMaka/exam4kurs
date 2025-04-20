@@ -104,16 +104,16 @@ export const userService = {
   updatePassword: (passwordData) => apiClient.put('/users/password', passwordData),
   // Updated function for profile updates
   updateUserProfile: (formData) => {
-    // Проверяем, что formData является экземпляром FormData
+    // Проверка правильности формата formData
     if (!(formData instanceof FormData)) {
       console.error('Error: formData must be an instance of FormData');
       return Promise.reject(new Error('Invalid formData format'));
     }
     
-    // Get auth token
+    // Получаем токен авторизации
     const token = localStorage.getItem('token');
     
-    // Debug log the form data
+    // Отладочный вывод данных формы
     console.log('Sending profile update with fields:', Array.from(formData.keys()));
     for (let [key, value] of formData.entries()) {
       if (key === 'profileImage') {
@@ -132,7 +132,7 @@ export const userService = {
       }
     };
     
-    // Send request to server
+    // Отправляем запрос на сервер
     return apiClient.put('/users/profile', formData, config);
   }
 };
