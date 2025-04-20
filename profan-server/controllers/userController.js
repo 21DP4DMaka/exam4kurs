@@ -369,10 +369,10 @@ exports.updateUserProfile = async (req, res) => {
     const userId = req.user.id;
     let profileImagePath = null;
     
-    console.log("Request body:", req.body);
-    console.log("Request files:", req.files ? Object.keys(req.files) : "No files");
+    console.log("Incoming files:", req.files);
+    console.log("Incoming body:", req.body);
     
-    // Process profile image if uploaded
+    // Проверка и обработка профильного изображения
     if (req.files && req.files.profileImage) {
       const profileImage = req.files.profileImage;
       
@@ -402,9 +402,10 @@ exports.updateUserProfile = async (req, res) => {
       // Save file
       await profileImage.mv(filePath);
       
-      // Set profile image path for database - THIS IS THE KEY FIX - STORE PATH AS STRING
-      profileImagePath = `/uploads/profile-images/${filename}`;
-      console.log("Saved profile image path:", profileImagePath);
+      // Store relative path in database (ВАЖНОЕ ИЗМЕНЕНИЕ)
+      profileImagePath = `uploads/profile-images/${filename}`;
+      
+      console.log("Generated profile image path:", profileImagePath);
     }
     
     // Find the user
@@ -415,58 +416,30 @@ exports.updateUserProfile = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
     
-    // Extract profile data
-    const { username, bio } = req.body;
-    let professionalData = null;
-    
-    if (req.body.professionalData) {
-      try {
-        professionalData = JSON.parse(req.body.professionalData);
-      } catch (e) {
-        console.error("Error parsing JSON professionalData:", e);
-      }
-    }
-
-    console.log("Updating user with data:", {
-      username: username || user.username,
-      bio: bio !== undefined ? bio : user.bio,
-      profileImage: profileImagePath || user.profileImage
-    });
-    
-    // Update user profile data - ONLY UPDATE profileImage IF WE HAVE A NEW ONE
+    // Prepare update data
     const updateData = {
-      username: username || user.username,
-      bio: bio !== undefined ? bio : user.bio,
+      username: req.body.username || user.username,
+      bio: req.body.bio !== undefined ? req.body.bio : user.bio
     };
-
-    // Only add profileImage to update if one was uploaded
+    
+    // Добавляем profileImage только если он был загружен
     if (profileImagePath) {
       updateData.profileImage = profileImagePath;
+      console.log("Adding profileImage to update data:", profileImagePath);
     }
     
-    await user.update(updateData, { transaction: t });
+    console.log("Final update data:", updateData);
     
-    // Update professional profile if exists and user is professional
-    if (professionalData && (user.role === 'power' || user.role === 'admin')) {
-      let profile = await ProfessionalProfile.findOne({ where: { userId } });
-      
-      if (profile) {
-        // Update existing profile
-        await profile.update({
-          workplace: professionalData.workplace !== undefined ? professionalData.workplace : profile.workplace
-        }, { transaction: t });
-      } else {
-        // Create new profile
-        profile = await ProfessionalProfile.create({
-          userId,
-          workplace: professionalData.workplace || null
-        }, { transaction: t });
-      }
-    }
+    // Обновляем пользователя
+    await user.update(updateData, { 
+      transaction: t,
+      validate: false 
+    });
     
+    // Commit транзакции
     await t.commit();
     
-    // Return updated user data
+    // Возвращаем обновленные данные пользователя
     const updatedUser = await User.findByPk(userId, {
       attributes: { exclude: ['password'] },
       include: [

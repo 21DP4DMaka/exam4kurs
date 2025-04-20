@@ -104,35 +104,20 @@ export const userService = {
   updatePassword: (passwordData) => apiClient.put('/users/password', passwordData),
   // Updated function for profile updates
   updateUserProfile: (formData) => {
-    // Проверка правильности формата formData
-    if (!(formData instanceof FormData)) {
-      console.error('Error: formData must be an instance of FormData');
-      return Promise.reject(new Error('Invalid formData format'));
-    }
-    
-    // Получаем токен авторизации
     const token = localStorage.getItem('token');
     
-    // Отладочный вывод данных формы
-    console.log('Sending profile update with fields:', Array.from(formData.keys()));
-    for (let [key, value] of formData.entries()) {
-      if (key === 'profileImage') {
-        console.log('profileImage:', value.name, value.type, value.size, 'bytes');
-      } else {
-        console.log(`${key}:`, value);
-      }
-    }
-    
-    // Create request config with correct headers
-    // IMPORTANT: Do NOT set Content-Type for multipart/form-data
-    // Let the browser set it automatically with the boundary
     const config = {
       headers: {
+        'Content-Type': 'multipart/form-data',
         'Authorization': `Bearer ${token}`
       }
     };
     
-    // Отправляем запрос на сервер
+    console.log('Sending profile update with fields:');
+    for (let [key, value] of formData.entries()) {
+      console.log(`${key}:`, value);
+    }
+    
     return apiClient.put('/users/profile', formData, config);
   }
 };

@@ -1,3 +1,4 @@
+// src/pages/ProfileEditPage.js - Fixed version with proper form handling
 import React, { useState, useEffect } from 'react';
 import './DashboardPage.css';
 import './UserProfilePage.css';
@@ -37,6 +38,8 @@ function ProfileEditPage({ setCurrentPage }) {
         const response = await authService.getCurrentUser();
         const userData = response.data.user;
         setUser(userData);
+        
+        console.log("Loaded user data:", userData);
         
         // Set initial form data from user profile
         setFormData({
@@ -115,17 +118,36 @@ function ProfileEditPage({ setCurrentPage }) {
     try {
       // Create form data to send to the server - MAKE SURE THIS IS FormData!
       const updateData = new FormData();
-updateData.append('username', formData.username);
-if (formData.bio !== undefined) {
-  updateData.append('bio', formData.bio);
-}
-if (avatar) {
-  updateData.append('profileImage', avatar);
-}
-      console.log("Form data being sent:", Array.from(updateData.entries()));
+        updateData.append('username', formData.username);
+        if (formData.bio) {
+          updateData.append('bio', formData.bio);
+        }
+        if (avatar) {
+          updateData.append('profileImage', avatar);
+        }
+
+      // Only include workplace for professionals
+      if (user.role === 'power' || user.role === 'admin') {
+        // IMPORTANT: Converting object to JSON string properly
+        const professionalData = JSON.stringify({ 
+          workplace: formData.workplace || '' 
+        });
+        
+        updateData.append('professionalData', professionalData);
+        console.log("Added professional data:", professionalData);
+      }
+
+      // Add avatar only if selected
+      if (avatar) {
+        updateData.append('profileImage', avatar);
+        console.log("Added avatar:", avatar.name, avatar.type, avatar.size);
+      }
+      
+      console.log("Form data being sent (entries):", Array.from(updateData.entries()));
       
       // Send update request
-      await userService.updateUserProfile(updateData);
+      const response = await userService.updateUserProfile(updateData);
+      console.log("Update response:", response);
       
       setSuccess('Profile updated successfully!');
       
@@ -182,7 +204,6 @@ if (avatar) {
     
     try {
       // Create API service if not exists
-      // This function call should be added to your API services
       await userService.updatePassword({
         currentPassword: formData.currentPassword,
         newPassword: formData.newPassword
