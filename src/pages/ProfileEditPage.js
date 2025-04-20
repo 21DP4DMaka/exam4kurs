@@ -129,6 +129,7 @@ function ProfileEditPage({ setCurrentPage }) {
 
       // Only include workplace for professionals
       if (user.role === 'power' || user.role === 'admin') {
+<<<<<<< HEAD
         // IMPORTANT: Converting object to JSON string properly
         const professionalData = JSON.stringify({ 
           workplace: formData.workplace || '' 
@@ -136,15 +137,27 @@ function ProfileEditPage({ setCurrentPage }) {
         
         updateData.append('professionalData', professionalData);
         console.log("Added professional data:", professionalData);
+=======
+        // IMPORTANT: Convert object to JSON string
+        updateData.append('professionalData', JSON.stringify({ 
+          workplace: formData.workplace || '' 
+        }));
+>>>>>>> parent of 467d70a (Update2)
       }
 
       // Add avatar only if selected
       if (avatar) {
         updateData.append('profileImage', avatar);
+<<<<<<< HEAD
         console.log("Added avatar:", avatar.name, avatar.type, avatar.size);
       }
       
       console.log("Form data being sent (entries):", Array.from(updateData.entries()));
+=======
+      }
+      
+      console.log("Form data being sent:", Array.from(updateData.entries()));
+>>>>>>> parent of 467d70a (Update2)
       
       // Send update request
       const response = await userService.updateUserProfile(updateData);

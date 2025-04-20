@@ -1,4 +1,4 @@
-// profan-server/models/index.js (исправленная версия)
+// profan-server/models/index.js (Update this file with new associations)
 const sequelize = require('../config/database');
 const User = require('./User');
 const ProfessionalProfile = require('./ProfessionalProfile');
@@ -66,6 +66,7 @@ Attachment.belongsTo(Question, { foreignKey: 'questionId' });
 
 Review.belongsTo(Question, { foreignKey: 'questionId' });
 Question.hasMany(Review, { foreignKey: 'questionId' });
+
 
 // Export models
 module.exports = {
