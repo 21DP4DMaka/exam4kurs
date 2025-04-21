@@ -12,26 +12,12 @@ function Footer() {
           </div>
           <div className="footer-links">
             <div className="link-group">
-              <h4>Platforma</h4>
-              <ul>
-                <li><a href="/about">Par mums</a></li>
-                <li><a href="/experts">Eksperti</a></li>
-                <li><a href="/faq">Biežāk uzdotie jautājumi</a></li>
-              </ul>
-            </div>
-            <div className="link-group">
-              <h4>Juridiskā info</h4>
-              <ul>
-                <li><a href="/terms">Lietošanas noteikumi</a></li>
-                <li><a href="/privacy">Privātuma politika</a></li>
-                <li><a href="/cookies">Sīkdatņu politika</a></li>
-              </ul>
-            </div>
-            <div className="link-group">
               <h4>Saziņa</h4>
               <ul>
-                <li><a href="/contact">Kontakti</a></li>
-                <li><a href="/support">Atbalsts</a></li>
+                <li><a href="/contact">E-pasts:
+                info@professionalanswers.lv</a></li>
+                <li><a href="/support">Tālrunis:
+                +371 12345678</a></li>
               </ul>
             </div>
           </div>

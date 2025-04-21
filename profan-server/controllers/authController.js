@@ -8,56 +8,101 @@ exports.register = async (req, res) => {
   try {
     const { username, email, password, role } = req.body;
 
-    // Pārbaudīt, vai lietotājs jau eksistē
-    const existingUser = await User.findOne({ 
-      where: { 
-        [Op.or]: [{ email }, { username }] 
-      } 
-    });
-
-    if (existingUser) {
+    // Дополнительная проверка email на сервере
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(email)) {
       return res.status(400).json({ 
-        message: 'Lietotājs ar šādu e-pastu vai lietotājvārdu jau eksistē' 
+        message: 'Nederīgs e-pasta formāts. Lūdzu, izmantojiet derīgu e-pastu (piemēram, lietotājs@domēns.com)' 
       });
     }
 
-    // Izveidot jaunu lietotāju ar default profileImage
-    const user = await User.create({
-      username,
-      email,
-      password,
-      role: role === 'professional' ? 'power' : 'regular',
-      profileImage: "/images/avatars/1.jpg" // Set default avatar image
-    });
-
-    // Ja lietotājs ir profesionālis, izveidot profesionāļa profilu
-    if (role === 'professional') {
-      await ProfessionalProfile.create({
-        userId: user.id
+    // Проверяем, существует ли пользователь
+    try {
+      const existingUser = await User.findOne({ 
+        where: { 
+          [Op.or]: [{ email }, { username }] 
+        } 
       });
-    }
 
-    // Izveidot JWT
-    const token = jwt.sign(
-      { userId: user.id },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
-
-    res.status(201).json({
-      message: 'Lietotājs veiksmīgi reģistrēts',
-      token,
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-        profileImage: user.profileImage
+      if (existingUser) {
+        // Более точные сообщения об ошибке
+        if (existingUser.email === email) {
+          return res.status(400).json({ 
+            message: 'Lietotājs ar šādu e-pastu jau eksistē' 
+          });
+        } else {
+          return res.status(400).json({ 
+            message: 'Lietotājs ar šādu lietotājvārdu jau eksistē' 
+          });
+        }
       }
-    });
+    } catch (dbError) {
+      console.error('Kļūda pārbaudot lietotāju:', dbError);
+      return res.status(500).json({ 
+        message: 'Kļūda pārbaudot lietotāju datu bāzē. Lūdzu, mēģiniet vēlreiz.' 
+      });
+    }
+
+    // Создаем нового пользователя с дефолтным изображением профиля
+    try {
+      const user = await User.create({
+        username,
+        email,
+        password,
+        role: role === 'professional' ? 'power' : 'regular',
+        profileImage: "/images/avatars/1.jpg" // Default avatar
+      });
+
+      // Создаем профессиональный профиль, если пользователь - профессионал
+      if (role === 'professional') {
+        await ProfessionalProfile.create({
+          userId: user.id
+        });
+      }
+
+      // Создаем JWT токен
+      const token = jwt.sign(
+        { userId: user.id },
+        process.env.JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+
+      res.status(201).json({
+        message: 'Lietotājs veiksmīgi reģistrēts',
+        token,
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+          profileImage: user.profileImage
+        }
+      });
+    } catch (createError) {
+      console.error('Kļūda izveidojot lietotāju:', createError);
+      
+      // Обработка ошибок валидации Sequelize
+      if (createError.name === 'SequelizeValidationError') {
+        const validationErrors = createError.errors.map(err => ({
+          field: err.path,
+          message: err.message
+        }));
+        
+        return res.status(400).json({ 
+          message: 'Validācijas kļūda',
+          errors: validationErrors
+        });
+      }
+      
+      return res.status(500).json({ message: 'Servera kļūda izveidojot lietotāju' });
+    }
+
   } catch (error) {
     console.error('Reģistrācijas kļūda:', error);
-    res.status(500).json({ message: 'Servera kļūda' });
+    res.status(500).json({ 
+      message: 'Servera kļūda',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 

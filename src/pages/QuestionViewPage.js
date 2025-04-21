@@ -150,7 +150,7 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
         content: answerContent
       });
       
-      setSubmitSuccess('Answer added successfully!');
+      setSubmitSuccess('Atbilde pievienota veiksmīgi!');
       setAnswerContent('');
       
       // Add the new answer to the answers list

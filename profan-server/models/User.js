@@ -1,4 +1,5 @@
-// Fixed User.js model with proper profileImage validation and default value
+// Улучшенная модель User.js с более детальной валидацией email
+
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 const bcrypt = require('bcryptjs');
@@ -12,19 +13,40 @@ const User = sequelize.define('User', {
   username: {
     type: DataTypes.STRING(50),
     allowNull: false,
-    unique: true
+    unique: true,
+    validate: {
+      len: {
+        args: [3, 50],
+        msg: 'Lietotājvārdam jābūt no 3 līdz 50 simboliem garam'
+      }
+    }
   },
   email: {
     type: DataTypes.STRING(100),
     allowNull: false,
     unique: true,
     validate: {
-      isEmail: true
+      isEmail: {
+        msg: 'Lūdzu, ievadiet derīgu e-pasta adresi (piemēram, vards@domens.com)'
+      },
+      isValidEmail(value) {
+        // Дополнительная проверка формата email
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!emailRegex.test(value)) {
+          throw new Error('Nederīgs e-pasta formāts. Lūdzu, izmantojiet derīgu e-pastu');
+        }
+      }
     }
   },
   password: {
     type: DataTypes.STRING(255),
-    allowNull: false
+    allowNull: false,
+    validate: {
+      len: {
+        args: [8, 255],
+        msg: 'Parolei jābūt vismaz 8 simbolus garai'
+      }
+    }
   },
   role: {
     type: DataTypes.ENUM('regular', 'power', 'admin'),

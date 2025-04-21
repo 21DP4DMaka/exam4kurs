@@ -30,38 +30,45 @@ function RegisterPage({ onRegister }) {
     }
   };
 
-  const validate = () => {
-    const newErrors = {};
-    
-    if (!formData.username) {
-      newErrors.username = 'Lietotājvārds ir obligāts';
-    } else if (formData.username.length < 3) {
-      newErrors.username = 'Lietotājvārdam jābūt vismaz 3 simbolus garam';
+  // Улучшенная функция валидации в RegisterPage.js
+
+const validate = () => {
+  const newErrors = {};
+  
+  if (!formData.username) {
+    newErrors.username = 'Lietotājvārds ir obligāts';
+  } else if (formData.username.length < 3) {
+    newErrors.username = 'Lietotājvārdam jābūt vismaz 3 simbolus garam';
+  }
+  
+  if (!formData.email) {
+    newErrors.email = 'E-pasts ir obligāts';
+  } else {
+    // Улучшенная валидация email с использованием более строгого регулярного выражения
+    // Это выражение проверяет наличие правильного домена верхнего уровня и другие требования
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(formData.email)) {
+      newErrors.email = 'Ievadiet derīgu e-pasta adresi (piemēram, vards@domens.com)';
     }
-    
-    if (!formData.email) {
-      newErrors.email = 'E-pasts ir obligāts';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Ievadiet derīgu e-pasta adresi';
-    }
-    
-    if (!formData.password) {
-      newErrors.password = 'Parole ir obligāta';
-    } else if (formData.password.length < 8) {
-      newErrors.password = 'Parolei jābūt vismaz 8 simbolus garai';
-    }
-    
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Paroles nesakrīt';
-    }
-    
-    if (!formData.agreeTerms) {
-      newErrors.agreeTerms = 'Jums jāpiekrīt noteikumiem un nosacījumiem';
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  }
+  
+  if (!formData.password) {
+    newErrors.password = 'Parole ir obligāta';
+  } else if (formData.password.length < 8) {
+    newErrors.password = 'Parolei jābūt vismaz 8 simbolus garai';
+  }
+  
+  if (formData.password !== formData.confirmPassword) {
+    newErrors.confirmPassword = 'Paroles nesakrīt';
+  }
+  
+  if (!formData.agreeTerms) {
+    newErrors.agreeTerms = 'Jums jāpiekrīt noteikumiem un nosacījumiem';
+  }
+  
+  setErrors(newErrors);
+  return Object.keys(newErrors).length === 0;
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
