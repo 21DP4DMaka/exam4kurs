@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './DashboardPage.css';
 import { authService, questionService, notificationService, userService } from '../services/api';
+import ProfileButton from '../components/ProfileButton';
 
 function DashboardPage({ user: passedUser, setCurrentPage, handleViewQuestion }) {
   const [user, setUser] = useState(passedUser || null);
@@ -189,26 +190,30 @@ function DashboardPage({ user: passedUser, setCurrentPage, handleViewQuestion })
     <div className="dashboard-page">
       <div className="dashboard-container">
         <div className="dashboard-sidebar">
-          <div className="user-profile">
-            <div className="avatar">
-              <img 
-                src={user.profileImage || "https://via.placeholder.com/80"} 
-                alt={`${user.username} profila attēls`}
-              />
-            </div>
-            <h3>{user.username}</h3>
-            <p className="user-type">
-              {user.role === 'admin' ? 'Administrators' : 
-               user.role === 'power' ? 'Profesionālis' : 'Lietotājs'}
-            </p>
-          </div>
-          <button 
-  className="btn btn-outline"
+        <div className="user-profile">
+  <div className="avatar">
+    <img 
+      src={user.profileImage || "https://via.placeholder.com/80"} 
+      alt={`${user.username} profila attēls`}
+    />
+  </div>
+  <h3>{user.username}</h3>
+  <p className="user-type">
+    {user.role === 'admin' ? 'Administrators' : 
+     user.role === 'power' ? 'Profesionālis' : 'Lietotājs'}
+  </p>
+  
+  {/* New improved profile button */}
+  <button 
+  className="profile-view-button"
   onClick={() => setCurrentPage('user-profile', user.id)}
 >
-  Skatīt manu profilu
+  <span className="button-icon">👤</span>
+  <span className="button-text">Skatīt manu profilu</span>
 </button>
-        </div>
+  </div>
+  </div>
+
         
         <div className="dashboard-content">
           <h2>Sveiki, {user.username}!</h2>
@@ -298,7 +303,32 @@ function DashboardPage({ user: passedUser, setCurrentPage, handleViewQuestion })
             <div className="dashboard-card notifications">
               <div className="card-header">
                 <h3>Paziņojumi</h3>
-                <a href="#" className="view-all">Atzīmēt visus kā lasītus</a>
+                <a 
+                  href="#" 
+                  className="view-all" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    // Call API to mark all notifications as read
+                    notificationService.markAllAsRead()
+                      .then(() => {
+                        // Update UI - mark all notifications as read
+                        setNotifications(notifications.map(notif => ({
+                          ...notif,
+                          isRead: true
+                        })));
+                        // Update stats - reset unread count to 0
+                        setStats(prevStats => ({
+                          ...prevStats,
+                          unreadNotifications: 0
+                        }));
+                      })
+                      .catch(error => {
+                        console.error('Error marking all notifications as read:', error);
+                      });
+                  }}
+                >
+                  Atzīmēt visus kā lasītus
+                </a>
               </div>
               <div className="card-content">
                 {notifications.length === 0 ? (

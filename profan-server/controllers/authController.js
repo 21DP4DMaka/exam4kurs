@@ -21,12 +21,13 @@ exports.register = async (req, res) => {
       });
     }
 
-    // Izveidot jaunu lietotāju
+    // Izveidot jaunu lietotāju ar default profileImage
     const user = await User.create({
       username,
       email,
       password,
-      role: role === 'professional' ? 'power' : 'regular'
+      role: role === 'professional' ? 'power' : 'regular',
+      profileImage: "/images/avatars/1.jpg" // Set default avatar image
     });
 
     // Ja lietotājs ir profesionālis, izveidot profesionāļa profilu
@@ -50,7 +51,8 @@ exports.register = async (req, res) => {
         id: user.id,
         username: user.username,
         email: user.email,
-        role: user.role
+        role: user.role,
+        profileImage: user.profileImage
       }
     });
   } catch (error) {
@@ -108,7 +110,8 @@ exports.login = async (req, res) => {
         id: user.id,
         username: user.username,
         email: user.email,
-        role: user.role
+        role: user.role,
+        profileImage: user.profileImage
       }
     });
   } catch (error) {

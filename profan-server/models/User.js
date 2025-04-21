@@ -1,4 +1,4 @@
-// Fixed User.js model with proper profileImage validation
+// Fixed User.js model with proper profileImage validation and default value
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 const bcrypt = require('bcryptjs');
@@ -41,6 +41,7 @@ const User = sequelize.define('User', {
   profileImage: {
     type: DataTypes.STRING(255),
     allowNull: true,
+    defaultValue: "/images/avatars/1.jpg", // Set default profile image
     validate: {
       // Custom validator to ensure profileImage is a string
       notAnObjectOrArray(value) {
@@ -61,6 +62,11 @@ const User = sequelize.define('User', {
       if (user.password) {
         const salt = await bcrypt.genSalt(10);
         user.password = await bcrypt.hash(user.password, salt);
+      }
+      
+      // Ensure profile image is set if it's not already
+      if (!user.profileImage) {
+        user.profileImage = "/images/avatars/1.jpg";
       }
     },
     beforeUpdate: async (user) => {

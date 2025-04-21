@@ -237,7 +237,7 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
   const handleReportQuestion = async (reason) => {
     try {
       await questionService.reportQuestion(questionId, { reason });
-      setSubmitSuccess('Report submitted successfully! Thank you for your contribution.');
+      setSubmitSuccess('Pārskats iesniegts veiksmīgi! Paldies par jūsu ieguldījumu.');
       
       // Auto-hide success message after 3 seconds
       setTimeout(() => {
@@ -450,7 +450,7 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
                           className="btn btn-sm btn-outline"
                           onClick={() => handleOpenReviewModal(answer.User)}
                         >
-                          Leave Review
+                          Atstāt atsauksmi
                         </button>
                       )}
                       
@@ -463,7 +463,7 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
                           className="btn btn-outline accept-answer-btn"
                           onClick={() => handleAcceptAnswer(answer.id)}
                         >
-                          Accept as Solution
+                          Pieņemt kā risinājumu
                         </button>
                       )}
                     </div>
@@ -525,7 +525,7 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
                     className="btn btn-primary"
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? 'Submitting...' : 'Submit Answer'}
+                    {isSubmitting ? 'Submitting...' : 'Iesniegt atbildi'}
                   </button>
                 </form>
               )}

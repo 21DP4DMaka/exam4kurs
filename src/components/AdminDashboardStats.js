@@ -1,4 +1,4 @@
-// src/components/AdminDashboardStats.js - исправлено отображение статистики
+// src/components/AdminDashboardStats.js - Fixed pie chart visualization
 import React, { useState, useEffect } from 'react';
 import { adminStatsService } from '../services/adminStatsService';
 import './AdminDashboardStats.css';
@@ -52,6 +52,16 @@ const AdminDashboardStats = () => {
   
   // Рассчитываем максимальное значение для диаграммы тегов
   const maxTagCount = tagStats.length > 0 ? Math.max(...tagStats.map(t => t.count || 0)) : 1;
+
+  // Calculate percentages for pie chart
+  const answeredPercent = totalQuestions ? answeredQuestions / totalQuestions * 100 : 0;
+  const openPercent = totalQuestions ? openQuestions / totalQuestions * 100 : 0; 
+  const closedPercent = totalQuestions ? closedQuestions / totalQuestions * 100 : 0;
+
+  // Calculate the angle for each segment
+  const answeredAngle = 3.6 * answeredPercent; // 3.6 = 360/100
+  const openAngle = 3.6 * openPercent;
+  const remainingAngle = 360 - answeredAngle - openAngle;
 
   return (
     <div className="admin-statistics-dashboard">
@@ -148,55 +158,33 @@ const AdminDashboardStats = () => {
             <div className="question-status-distribution">
               <h4>Jautājumu statusa sadalījums</h4>
               <div className="status-pie-chart">
-  <div className="status-pie-container">
-    {/* Здесь нужно исправить отображение кругов статистики */}
-    <div className="status-pie">
-      {/* Расчет правильных пропорций для каждого сегмента */}
-      <div 
-        className="status-slice answered" 
-        style={{ 
-          clipPath: `polygon(50% 50%, 0% 0%, ${statistics.questionStats.answeredQuestions / statistics.questionStats.totalQuestions * 100}% 0%)`,
-          transform: 'rotate(0deg)',
-          width: '100%',
-          height: '100%'
-        }}
-      ></div>
-      <div 
-        className="status-slice open" 
-        style={{ 
-          clipPath: `polygon(50% 50%, ${statistics.questionStats.answeredQuestions / statistics.questionStats.totalQuestions * 100}% 0%, 100% ${statistics.questionStats.openQuestions / statistics.questionStats.totalQuestions * 100}%)`,
-          transform: 'rotate(0deg)',
-          width: '100%',
-          height: '100%'
-        }}
-      ></div>
-      <div 
-        className="status-slice closed" 
-        style={{ 
-          clipPath: `polygon(50% 50%, 100% ${statistics.questionStats.openQuestions / statistics.questionStats.totalQuestions * 100}%, 100% 100%, 0% 100%, 0% 0%)`,
-          transform: 'rotate(0deg)',
-          width: '100%',
-          height: '100%'
-        }}
-      ></div>
-    </div>
-  </div>
-  
-  <div className="status-legend">
-    <div className="legend-item">
-      <div className="legend-color answered"></div>
-      <div className="legend-label">Atbildēja ({statistics.questionStats.answeredQuestions})</div>
-    </div>
-    <div className="legend-item">
-      <div className="legend-color open"></div>
-      <div className="legend-label">Atvērti ({statistics.questionStats.openQuestions})</div>
-    </div>
-    <div className="legend-item">
-      <div className="legend-color closed"></div>
-      <div className="legend-label">Slēgti ({statistics.questionStats.closedQuestions})</div>
-    </div>
-  </div>
-</div>
+                <div className="status-pie-container">
+                  {/* Fixed pie chart with CSS conic-gradient */}
+                  <div className="status-pie" style={{
+                    background: `conic-gradient(
+                      #2ecc71 0deg ${answeredAngle}deg, 
+                      #3498db ${answeredAngle}deg ${answeredAngle + openAngle}deg, 
+                      #95a5a6 ${answeredAngle + openAngle}deg 360deg
+                    )`
+                  }}>
+                  </div>
+                </div>
+                
+                <div className="status-legend">
+                  <div className="legend-item">
+                    <div className="legend-color answered"></div>
+                    <div className="legend-label">Atbildēja ({answeredQuestions})</div>
+                  </div>
+                  <div className="legend-item">
+                    <div className="legend-color open"></div>
+                    <div className="legend-label">Atvērti ({openQuestions})</div>
+                  </div>
+                  <div className="legend-item">
+                    <div className="legend-color closed"></div>
+                    <div className="legend-label">Slēgti ({closedQuestions})</div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

@@ -1,303 +1,281 @@
-/* AdminDashboardStats.css */
+/* AdminDashboardStats.css - Updated for proper pie chart */
 .admin-statistics-dashboard {
-    background-color: #f8f9fa;
-    border-radius: 10px;
-    padding: 25px;
-    margin: 20px 0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
-  
-  .stats-title {
-    color: #2c3e50;
-    font-size: 1.8rem;
-    margin-bottom: 25px;
-    text-align: center;
-    font-weight: 600;
-  }
-  
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  padding: 25px;
+  margin: 20px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.stats-title {
+  color: #2c3e50;
+  font-size: 1.8rem;
+  margin-bottom: 25px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 25px;
+  margin-bottom: 25px;
+}
+
+.stats-card {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.stats-card h3 {
+  background-color: #f1f5f9;
+  color: #2c3e50;
+  padding: 15px 20px;
+  margin: 0;
+  font-size: 1.2rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.stats-card h4 {
+  color: #4a5568;
+  font-size: 1rem;
+  margin: 20px 0 15px;
+  text-align: center;
+}
+
+.stats-card-content {
+  padding: 20px;
+}
+
+.stat-summary {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.stat-item {
+  text-align: center;
+  padding: 15px 10px;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #3498db;
+  margin-bottom: 5px;
+}
+
+.stat-label {
+  color: #718096;
+  font-size: 0.9rem;
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+/* User roles distribution */
+.user-roles-distribution,
+.question-status-distribution {
+  margin-top: 25px;
+}
+
+.role-bars {
+  margin-top: 15px;
+}
+
+.role-bar-container {
+  margin-bottom: 15px;
+}
+
+.role-label {
+  font-size: 0.9rem;
+  color: #4a5568;
+  margin-bottom: 5px;
+}
+
+.role-bar-wrapper {
+  background-color: #edf2f7;
+  border-radius: 4px;
+  height: 24px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.role-bar {
+  height: 100%;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: width 0.5s ease-in-out;
+  min-width: 30px;
+}
+
+.role-bar.professional {
+  background-color: #3498db;
+}
+
+.role-bar.regular {
+  background-color: #2ecc71;
+}
+
+.role-bar.admin {
+  background-color: #e74c3c;
+}
+
+/* Updated pie chart styling */
+.status-pie-chart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 15px;
+}
+
+.status-pie-container {
+  width: 150px;
+  height: 150px;
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.status-pie {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  position: relative;
+  overflow: hidden;
+  /* The conic-gradient is set dynamically in the component */
+}
+
+.status-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  justify-content: center;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.legend-color {
+  width: 15px;
+  height: 15px;
+  border-radius: 3px;
+}
+
+.legend-color.answered {
+  background-color: #2ecc71;
+}
+
+.legend-color.open {
+  background-color: #3498db;
+}
+
+.legend-color.closed {
+  background-color: #95a5a6;
+}
+
+.legend-label {
+  font-size: 0.85rem;
+  color: #4a5568;
+}
+
+/* Bar chart for tags */
+.bar-chart {
+  margin-top: 20px;
+}
+
+.bar-group {
+  margin-bottom: 15px;
+}
+
+.bar-label {
+  font-size: 0.9rem;
+  color: #4a5568;
+  margin-bottom: 5px;
+}
+
+.bar-container {
+  background-color: #edf2f7;
+  border-radius: 4px;
+  height: 24px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.bar {
+  height: 100%;
+  background-color: #3498db;
+  color: white;
+  display: flex;
+  align-items: center;
+  padding-left: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: width 0.5s ease-in-out;
+  min-width: 30px;
+}
+
+/* Stats toggle button */
+.stats-toggle-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
+
+/* Loading and error states */
+.stats-loading,
+.stats-error {
+  text-align: center;
+  padding: 40px;
+  color: #718096;
+  font-size: 1.1rem;
+}
+
+.stats-error {
+  color: #e53e3e;
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
   .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 25px;
-    margin-bottom: 25px;
-  }
-  
-  .stats-card {
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    overflow: hidden;
-  }
-  
-  .stats-card h3 {
-    background-color: #f1f5f9;
-    color: #2c3e50;
-    padding: 15px 20px;
-    margin: 0;
-    font-size: 1.2rem;
-    border-bottom: 1px solid #e2e8f0;
-  }
-  
-  .stats-card h4 {
-    color: #4a5568;
-    font-size: 1rem;
-    margin: 20px 0 15px;
-    text-align: center;
-  }
-  
-  .stats-card-content {
-    padding: 20px;
+    grid-template-columns: 1fr;
   }
   
   .stat-summary {
-    display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-    margin-bottom: 20px;
+  }
+}
+
+@media (max-width: 576px) {
+  .stat-summary {
+    grid-template-columns: 1fr;
   }
   
-  .stat-item {
-    text-align: center;
-    padding: 15px 10px;
-    background-color: #f8f9fa;
-    border-radius: 6px;
-    transition: transform 0.2s, box-shadow 0.2s;
-  }
-  
-  .stat-item:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-  
-  .stat-value {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #3498db;
-    margin-bottom: 5px;
-  }
-  
-  .stat-label {
-    color: #718096;
-    font-size: 0.9rem;
-  }
-  
-  .full-width {
-    grid-column: 1 / -1;
-  }
-  
-  /* User roles distribution */
-  .user-roles-distribution,
-  .question-status-distribution {
-    margin-top: 25px;
-  }
-  
-  .role-bars {
-    margin-top: 15px;
-  }
-  
-  .role-bar-container {
-    margin-bottom: 15px;
-  }
-  
-  .role-label {
-    font-size: 0.9rem;
-    color: #4a5568;
-    margin-bottom: 5px;
-  }
-  
-  .role-bar-wrapper {
-    background-color: #edf2f7;
-    border-radius: 4px;
-    height: 24px;
-    width: 100%;
-    overflow: hidden;
-  }
-  
-  .role-bar {
-    height: 100%;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.85rem;
-    font-weight: 600;
-    transition: width 0.5s ease-in-out;
-    min-width: 30px;
-  }
-  
-  .role-bar.professional {
-    background-color: #3498db;
-  }
-  
-  .role-bar.regular {
-    background-color: #2ecc71;
-  }
-  
-  .role-bar.admin {
-    background-color: #e74c3c;
-  }
-  
-  /* Status pie chart simulation */
-  .status-pie-chart {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-top: 15px;
-  }
-  
-  .status-pie-container {
-    width: 150px;
-    height: 150px;
-    position: relative;
-    margin-bottom: 20px;
-  }
-  
-  .status-pie {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .status-slice {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-  }
-  
-  .status-slice.answered {
-    background-color: #2ecc71;
-    z-index: 3;
-  }
-  
-  .status-slice.open {
-    background-color: #3498db;
-    z-index: 2;
-  }
-  
-  .status-slice.closed {
-    background-color: #95a5a6;
-    z-index: 1;
+  .admin-statistics-dashboard {
+    padding: 15px;
   }
   
   .status-legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    justify-content: center;
-  }
-  
-  .legend-item {
-    display: flex;
-    align-items: center;
+    flex-direction: column;
+    align-items: flex-start;
     gap: 5px;
   }
-  
-  .legend-color {
-    width: 15px;
-    height: 15px;
-    border-radius: 3px;
-  }
-  
-  .legend-color.answered {
-    background-color: #2ecc71;
-  }
-  
-  .legend-color.open {
-    background-color: #3498db;
-  }
-  
-  .legend-color.closed {
-    background-color: #95a5a6;
-  }
-  
-  .legend-label {
-    font-size: 0.85rem;
-    color: #4a5568;
-  }
-  
-  /* Bar chart for tags */
-  .bar-chart {
-    margin-top: 20px;
-  }
-  
-  .bar-group {
-    margin-bottom: 15px;
-  }
-  
-  .bar-label {
-    font-size: 0.9rem;
-    color: #4a5568;
-    margin-bottom: 5px;
-  }
-  
-  .bar-container {
-    background-color: #edf2f7;
-    border-radius: 4px;
-    height: 24px;
-    overflow: hidden;
-    width: 100%;
-  }
-  
-  .bar {
-    height: 100%;
-    background-color: #3498db;
-    color: white;
-    display: flex;
-    align-items: center;
-    padding-left: 10px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    transition: width 0.5s ease-in-out;
-    min-width: 30px;
-  }
-  
-  /* Stats toggle button */
-  .stats-toggle-container {
-    display: flex;
-    justify-content: flex-end;
-    margin-bottom: 20px;
-  }
-  
-  /* Loading and error states */
-  .stats-loading,
-  .stats-error {
-    text-align: center;
-    padding: 40px;
-    color: #718096;
-    font-size: 1.1rem;
-  }
-  
-  .stats-error {
-    color: #e53e3e;
-  }
-  
-  /* Responsive adjustments */
-  @media (max-width: 992px) {
-    .stats-grid {
-      grid-template-columns: 1fr;
-    }
-    
-    .stat-summary {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-  
-  @media (max-width: 576px) {
-    .stat-summary {
-      grid-template-columns: 1fr;
-    }
-    
-    .admin-statistics-dashboard {
-      padding: 15px;
-    }
-    
-    .status-legend {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 5px;
-    }
-  }
+}

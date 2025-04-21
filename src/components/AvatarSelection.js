@@ -1,6 +1,7 @@
+// src/components/AvatarSelection.js - Improved selection with default
 import React from 'react';
 
-// Исправленные пути к аватаркам
+// Avatar paths
 const AVATAR_OPTIONS = [
   "/images/avatars/1.jpg",
   "/images/avatars/2.png",
@@ -9,19 +10,22 @@ const AVATAR_OPTIONS = [
 ];
 
 function AvatarSelection({ selectedAvatar, onSelectAvatar }) {
+  // Default to first avatar (index 0) if no selection
+  const currentSelection = selectedAvatar === null ? 0 : selectedAvatar;
+  
   return (
     <div className="avatar-selection-container">
-      <label className="avatar-label">Выберите изображение профиля:</label>
+      <label className="avatar-label">Izvēlieties profila attēlu:</label>
       <div className="avatar-selection-grid">
         {AVATAR_OPTIONS.map((avatar, index) => (
           <div 
             key={index}
-            className={`avatar-option ${selectedAvatar === index ? 'selected' : ''}`}
+            className={`avatar-option ${currentSelection === index ? 'selected' : ''}`}
             onClick={() => onSelectAvatar(index)}
           >
             <img 
               src={avatar}
-              alt={`Вариант аватара ${index + 1}`}
+              alt={`Profila attēla variants ${index + 1}`}
               className="avatar-preview"
             />
           </div>

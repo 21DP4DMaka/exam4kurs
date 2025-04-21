@@ -1,4 +1,4 @@
-// src/pages/ProfileEditPage.js - Updated to remove workplace field and add avatar selection
+// src/pages/ProfileEditPage.js - Updated to handle default avatar
 import React, { useState, useEffect } from 'react';
 import './DashboardPage.css';
 import './UserProfilePage.css';
@@ -17,7 +17,7 @@ function ProfileEditPage({ setCurrentPage }) {
   // User data state
   const [user, setUser] = useState(null);
   
-  // Form data state with password fields but without workplace
+  // Form data state with password fields
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -25,11 +25,11 @@ function ProfileEditPage({ setCurrentPage }) {
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
-    profileImage: '' 
+    profileImage: '/images/avatars/1.jpg' // Default avatar
   });
   
   // UI state
-  const [selectedAvatar, setSelectedAvatar] = useState(null);
+  const [selectedAvatar, setSelectedAvatar] = useState(0); // Default to first avatar
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -55,7 +55,7 @@ function ProfileEditPage({ setCurrentPage }) {
           currentPassword: '',
           newPassword: '',
           confirmPassword: '',
-          profileImage: userData.profileImage || ''
+          profileImage: userData.profileImage || '/images/avatars/1.jpg'
         });
         
         // Set selected avatar if user has a profile image
@@ -66,7 +66,7 @@ function ProfileEditPage({ setCurrentPage }) {
             setSelectedAvatar(avatarIndex);
           } else {
             // Otherwise, we'll use their custom avatar
-            setSelectedAvatar(-1); // -1 indicates a custom avatar
+            setSelectedAvatar(0); // Default to first avatar
           }
         }
         
@@ -129,7 +129,7 @@ function ProfileEditPage({ setCurrentPage }) {
       const response = await userService.updateUserProfile(updateData);
       console.log("Update response:", response);
       
-      setSuccess('Profile updated successfully!');
+      setSuccess('Profils veiksmīgi atjaunināts!');
       
       // Auto-hide success message after 3 seconds and navigate back
       setTimeout(() => {
@@ -146,7 +146,7 @@ function ProfileEditPage({ setCurrentPage }) {
       if (error.response && error.response.data && error.response.data.message) {
         setError(error.response.data.message);
       } else {
-        setError('Error updating profile. Please try again.');
+        setError('Kļūda atjaunojot profilu. Lūdzu, mēģiniet vēlreiz.');
       }
     } finally {
       setIsSaving(false);
