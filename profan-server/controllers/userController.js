@@ -3,6 +3,7 @@ const { Op } = require('sequelize');
 const fs = require('fs');
 const path = require('path');
 
+
 // Get all users with pagination (Admin only)
 exports.getAllUsers = async (req, res) => {
   try {
@@ -362,6 +363,7 @@ exports.getUserAnswers = async (req, res) => {
 };
 
 // Update profile endpoint - FIXED VERSION
+// Update profile endpoint - FIXED VERSION
 exports.updateUserProfile = async (req, res) => {
   const t = await sequelize.transaction();
   
@@ -372,7 +374,7 @@ exports.updateUserProfile = async (req, res) => {
     console.log("Request body:", req.body);
     console.log("Request files:", req.files ? Object.keys(req.files) : "No files");
     
-    // Process profile image if uploaded
+    // Process profile image if uploaded with express-fileupload
     if (req.files && req.files.profileImage) {
       const profileImage = req.files.profileImage;
       
@@ -399,10 +401,10 @@ exports.updateUserProfile = async (req, res) => {
       const filename = `${userId}_${timestamp}_${profileImage.name.replace(/\s+/g, '_')}`;
       const filePath = path.join(uploadDir, filename);
       
-      // Save file
+      // Save file using express-fileupload's mv method
       await profileImage.mv(filePath);
       
-      // Set profile image path for database - THIS IS THE KEY FIX - STORE PATH AS STRING
+      // Set profile image path for database
       profileImagePath = `/uploads/profile-images/${filename}`;
       console.log("Saved profile image path:", profileImagePath);
     }
@@ -416,7 +418,7 @@ exports.updateUserProfile = async (req, res) => {
     }
     
     // Extract profile data
-    const { username, bio, workplace } = req.body;
+    const { username, bio } = req.body;
     let professionalData = null;
     
     if (req.body.professionalData) {
@@ -432,11 +434,10 @@ exports.updateUserProfile = async (req, res) => {
       username: username || user.username,
       bio: bio !== undefined ? bio : user.bio,
       profileImage: profileImagePath || user.profileImage,
-      workplace: workplace || professionalData.workplace
+      workplace: professionalData?.workplace
     });
     
-    
-    // Update user profile data - ONLY UPDATE profileImage IF WE HAVE A NEW ONE
+    // Update user profile data
     const updateData = {
       username: username || user.username,
       bio: bio !== undefined ? bio : user.bio,

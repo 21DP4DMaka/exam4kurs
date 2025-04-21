@@ -94,7 +94,6 @@ export const userService = {
   deleteUser: (userId) => apiClient.delete(`/users/${userId}`),
   reportUser: (userId, data) => apiClient.post(`/users/${userId}/report`, data),
   
-  
   // Functions for user profiles and reviews
   getUserById: (userId) => apiClient.get(`/users/${userId}`),
   getUserQuestions: (userId) => apiClient.get(`/users/${userId}/questions`),
@@ -102,33 +101,21 @@ export const userService = {
   getUserReviews: (userId) => apiClient.get(`/reviews/users/${userId}/reviews`),
   createUserReview: (userId, reviewData) => apiClient.post(`/reviews/users/${userId}/reviews`, reviewData),
   updatePassword: (passwordData) => apiClient.put('/users/password', passwordData),
-  // Updated function for profile updates
+  
+  // Fixed function for profile updates
   updateUserProfile: (formData) => {
-    // Проверяем, что formData является экземпляром FormData
-    if (!(formData instanceof FormData)) {
-      console.error('Error: formData must be an instance of FormData');
-      return Promise.reject(new Error('Invalid formData format'));
-    }
-    
+    // For express-fileupload, we need to make sure we're sending the data correctly
     // Get auth token
     const token = localStorage.getItem('token');
     
-    // Debug log the form data
-    console.log('Sending profile update with fields:', Array.from(formData.keys()));
-    for (let [key, value] of formData.entries()) {
-      if (key === 'profileImage') {
-        console.log('profileImage:', value.name, value.type, value.size, 'bytes');
-      } else {
-        console.log(`${key}:`, value);
-      }
-    }
+    // Debug log available data
+    console.log('Updating profile with form data:', formData);
     
     // Create request config with correct headers
-    // IMPORTANT: Do NOT set Content-Type for multipart/form-data
-    // Let the browser set it automatically with the boundary
+    // For express-fileupload, we don't need to set the Content-Type
+    // The browser will set it automatically with the boundary
     const config = {
       headers: {
-        'Content-Type': 'multipart/form-data',
         'Authorization': `Bearer ${token}`
       }
     };

@@ -1,4 +1,4 @@
-// src/pages/ProfileEditPage.js - Fixed version with proper form handling
+// src/pages/ProfileEditPage.js - Fixed version with proper workplace handling
 import React, { useState, useEffect } from 'react';
 import './DashboardPage.css';
 import './UserProfilePage.css';
@@ -78,7 +78,7 @@ function ProfileEditPage({ setCurrentPage }) {
     });
   };
 
-  // Handle avatar file selection - FIXED VERSION
+  // Handle avatar file selection
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -108,7 +108,7 @@ function ProfileEditPage({ setCurrentPage }) {
     }
   };
 
-  // Handle basic profile update (username, bio, avatar) - FIXED VERSION
+  // Handle basic profile update (username, bio, avatar)
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
     setIsSaving(true);
@@ -116,7 +116,7 @@ function ProfileEditPage({ setCurrentPage }) {
     setSuccess(null);
     
     try {
-      // Create form data to send to the server - MAKE SURE THIS IS FormData!
+      // Create form data to send to the server
       const updateData = new FormData();
       
       // Only append text fields that exist
@@ -129,7 +129,6 @@ function ProfileEditPage({ setCurrentPage }) {
 
       // Only include workplace for professionals
       if (user.role === 'power' || user.role === 'admin') {
-<<<<<<< HEAD
         // IMPORTANT: Converting object to JSON string properly
         const professionalData = JSON.stringify({ 
           workplace: formData.workplace || '' 
@@ -137,27 +136,15 @@ function ProfileEditPage({ setCurrentPage }) {
         
         updateData.append('professionalData', professionalData);
         console.log("Added professional data:", professionalData);
-=======
-        // IMPORTANT: Convert object to JSON string
-        updateData.append('professionalData', JSON.stringify({ 
-          workplace: formData.workplace || '' 
-        }));
->>>>>>> parent of 467d70a (Update2)
       }
 
       // Add avatar only if selected
       if (avatar) {
         updateData.append('profileImage', avatar);
-<<<<<<< HEAD
         console.log("Added avatar:", avatar.name, avatar.type, avatar.size);
       }
       
       console.log("Form data being sent (entries):", Array.from(updateData.entries()));
-=======
-      }
-      
-      console.log("Form data being sent:", Array.from(updateData.entries()));
->>>>>>> parent of 467d70a (Update2)
       
       // Send update request
       const response = await userService.updateUserProfile(updateData);
@@ -183,7 +170,7 @@ function ProfileEditPage({ setCurrentPage }) {
         setError('Error updating profile. Please try again.');
       }
     } finally {
-      setIsSaving(false);
+      setIsSaving(true);
     }
   };
 

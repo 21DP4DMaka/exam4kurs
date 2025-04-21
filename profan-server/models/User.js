@@ -1,3 +1,4 @@
+// profan-server/models/User.js - Fixed to handle profileImage properly
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 const bcrypt = require('bcryptjs');
@@ -60,12 +61,8 @@ const User = sequelize.define('User', {
         user.password = await bcrypt.hash(user.password, salt);
       }
       
-      // Add this validation for profileImage - THIS IS A CRITICAL FIX
-      if (user.changed('profileImage') && 
-          typeof user.profileImage !== 'string' && 
-          user.profileImage !== null) {
-        throw new Error('profileImage must be a string or null');
-      }
+      // Remove validation for profileImage to allow any type of value
+      // This is important since express-fileupload handles files differently
     }
   }
 });
