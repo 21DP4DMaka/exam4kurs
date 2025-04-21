@@ -7,14 +7,10 @@ import { authService, userService } from '../services/api';
 
 // Predefined avatar options
 const AVATAR_OPTIONS = [
-  "https://via.placeholder.com/100/3498db/FFFFFF?text=1",
-  "https://via.placeholder.com/100/e74c3c/FFFFFF?text=2",
-  "https://via.placeholder.com/100/2ecc71/FFFFFF?text=3",
-  "https://via.placeholder.com/100/f39c12/FFFFFF?text=4",
-  "https://via.placeholder.com/100/9b59b6/FFFFFF?text=5",
-  "https://via.placeholder.com/100/34495e/FFFFFF?text=6",
-  "https://via.placeholder.com/100/1abc9c/FFFFFF?text=7",
-  "https://via.placeholder.com/100/95a5a6/FFFFFF?text=8"
+  "/images/avatars/1.jpg",
+  "/images/avatars/2.png",
+  "/images/avatars/3.jpeg",
+  "/images/avatars/4.png",
 ];
 
 function ProfileEditPage({ setCurrentPage }) {

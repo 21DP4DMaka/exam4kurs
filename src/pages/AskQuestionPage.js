@@ -27,6 +27,9 @@ function AskQuestionPage({ user, setCurrentPage }) {
         setError('Neizdevās ielādēt tagu sarakstu. Lūdzu, mēģiniet vēlreiz.');
       }
     };
+    if (user && (user.role === 'power' || user.role === 'admin')) {
+      return;
+    }
     
     fetchTags();
     
@@ -265,7 +268,7 @@ function AskQuestionPage({ user, setCurrentPage }) {
             
             {!isLoggedIn && (
               <div className="login-required-message">
-                <p>Lai uzdotu jautājumu, jums nepieciešams pieslēgties.</p>
+                <p>Lai uzdotu jautājumu, jums nepieciešams pieslēgties kā parastais lietotājs.</p>
                 <button 
                   type="button" 
                   className="btn btn-outline"

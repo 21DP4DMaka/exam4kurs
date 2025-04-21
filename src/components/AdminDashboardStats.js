@@ -1,4 +1,4 @@
-// src/components/AdminDashboardStats.js
+// src/components/AdminDashboardStats.js - исправлено отображение статистики
 import React, { useState, useEffect } from 'react';
 import { adminStatsService } from '../services/adminStatsService';
 import './AdminDashboardStats.css';
@@ -12,7 +12,7 @@ const AdminDashboardStats = () => {
     const fetchStats = async () => {
       try {
         setIsLoading(true);
-        // Make a real API call to fetch statistics from your backend
+        // Запрос статистики с бэкенда
         const response = await adminStatsService.getAdminStats();
         setStatistics(response.data);
         setIsLoading(false);
@@ -30,6 +30,29 @@ const AdminDashboardStats = () => {
   if (error) return <div className="stats-error">{error}</div>;
   if (!statistics) return null;
 
+  // Проверяем, что необходимые данные существуют
+  const { userStats = {}, questionStats = {}, tagStats = [] } = statistics;
+  
+  // Устанавливаем значения по умолчанию, чтобы избежать ошибок
+  const totalUsers = userStats.totalUsers || 0;
+  const powerUsers = userStats.powerUsers || 0;
+  const regularUsers = userStats.regularUsers || 0;
+  const adminUsers = userStats.adminUsers || 0;
+  const newUsersLastWeek = userStats.newUsersLastWeek || 0;
+  
+  const totalQuestions = questionStats.totalQuestions || 0;
+  const answeredQuestions = questionStats.answeredQuestions || 0;
+  const openQuestions = questionStats.openQuestions || 0;
+  const closedQuestions = questionStats.closedQuestions || 0;
+  
+  // Проверяем, что мы не делим на ноль
+  const powerUsersPercent = totalUsers ? ((powerUsers / totalUsers) * 100).toFixed(1) : 0;
+  const regularUsersPercent = totalUsers ? ((regularUsers / totalUsers) * 100).toFixed(1) : 0;
+  const adminUsersPercent = totalUsers ? ((adminUsers / totalUsers) * 100).toFixed(1) : 0;
+  
+  // Рассчитываем максимальное значение для диаграммы тегов
+  const maxTagCount = tagStats.length > 0 ? Math.max(...tagStats.map(t => t.count || 0)) : 1;
+
   return (
     <div className="admin-statistics-dashboard">
       <h2 className="stats-title">Platformas statistika</h2>
@@ -40,19 +63,19 @@ const AdminDashboardStats = () => {
           <div className="stats-card-content">
             <div className="stat-summary">
               <div className="stat-item">
-                <div className="stat-value">{statistics.userStats.totalUsers}</div>
+                <div className="stat-value">{totalUsers}</div>
                 <div className="stat-label">Kopā lietotāji</div>
               </div>
               <div className="stat-item">
-                <div className="stat-value">{statistics.userStats.powerUsers}</div>
+                <div className="stat-value">{powerUsers}</div>
                 <div className="stat-label">Profesionāļi</div>
               </div>
               <div className="stat-item">
-                <div className="stat-value">{statistics.userStats.regularUsers}</div>
+                <div className="stat-value">{regularUsers}</div>
                 <div className="stat-label">Parasti lietotāji</div>
               </div>
               <div className="stat-item">
-                <div className="stat-value">{statistics.userStats.newUsersLastWeek}</div>
+                <div className="stat-value">{newUsersLastWeek}</div>
                 <div className="stat-label">Jauni lietotāji (nedēļā)</div>
               </div>
             </div>
@@ -65,9 +88,9 @@ const AdminDashboardStats = () => {
                   <div className="role-bar-wrapper">
                     <div 
                       className="role-bar professional"
-                      style={{ width: `${(statistics.userStats.powerUsers / statistics.userStats.totalUsers) * 100}%` }}
+                      style={{ width: `${powerUsersPercent}%` }}
                     >
-                      {statistics.userStats.powerUsers} ({((statistics.userStats.powerUsers / statistics.userStats.totalUsers) * 100).toFixed(1)}%)
+                      {powerUsers} ({powerUsersPercent}%)
                     </div>
                   </div>
                 </div>
@@ -77,9 +100,9 @@ const AdminDashboardStats = () => {
                   <div className="role-bar-wrapper">
                     <div 
                       className="role-bar regular"
-                      style={{ width: `${(statistics.userStats.regularUsers / statistics.userStats.totalUsers) * 100}%` }}
+                      style={{ width: `${regularUsersPercent}%` }}
                     >
-                      {statistics.userStats.regularUsers} ({((statistics.userStats.regularUsers / statistics.userStats.totalUsers) * 100).toFixed(1)}%)
+                      {regularUsers} ({regularUsersPercent}%)
                     </div>
                   </div>
                 </div>
@@ -89,9 +112,9 @@ const AdminDashboardStats = () => {
                   <div className="role-bar-wrapper">
                     <div 
                       className="role-bar admin"
-                      style={{ width: `${(statistics.userStats.adminUsers / statistics.userStats.totalUsers) * 100}%` }}
+                      style={{ width: `${adminUsersPercent}%` }}
                     >
-                      {statistics.userStats.adminUsers} ({((statistics.userStats.adminUsers / statistics.userStats.totalUsers) * 100).toFixed(1)}%)
+                      {adminUsers} ({adminUsersPercent}%)
                     </div>
                   </div>
                 </div>
@@ -105,19 +128,19 @@ const AdminDashboardStats = () => {
           <div className="stats-card-content">
             <div className="stat-summary">
               <div className="stat-item">
-                <div className="stat-value">{statistics.questionStats.totalQuestions}</div>
+                <div className="stat-value">{totalQuestions}</div>
                 <div className="stat-label">Kopā jautājumi</div>
               </div>
               <div className="stat-item">
-                <div className="stat-value">{statistics.questionStats.answeredQuestions}</div>
+                <div className="stat-value">{answeredQuestions}</div>
                 <div className="stat-label">Atbildēti</div>
               </div>
               <div className="stat-item">
-                <div className="stat-value">{statistics.questionStats.openQuestions}</div>
+                <div className="stat-value">{openQuestions}</div>
                 <div className="stat-label">Atvērti</div>
               </div>
               <div className="stat-item">
-                <div className="stat-value">{statistics.questionStats.closedQuestions}</div>
+                <div className="stat-value">{closedQuestions}</div>
                 <div className="stat-label">Slēgti</div>
               </div>
             </div>
@@ -125,53 +148,55 @@ const AdminDashboardStats = () => {
             <div className="question-status-distribution">
               <h4>Jautājumu statusa sadalījums</h4>
               <div className="status-pie-chart">
-                <div className="status-pie-container">
-                  <div className="status-pie">
-                    <div 
-                      className="status-slice answered" 
-                      style={{ 
-                        transform: `rotate(0deg)`,
-                        clipPath: `polygon(50% 50%, 100% 0%, 100% 100%, 50% 50%)`,
-                        width: '100%',
-                        height: '100%'
-                      }}
-                    ></div>
-                    <div 
-                      className="status-slice open" 
-                      style={{ 
-                        transform: `rotate(${(statistics.questionStats.answeredQuestions / statistics.questionStats.totalQuestions) * 360}deg)`,
-                        clipPath: `polygon(50% 50%, 100% 0%, 100% 100%, 50% 50%)`,
-                        width: '100%',
-                        height: '100%'
-                      }}
-                    ></div>
-                    <div 
-                      className="status-slice closed" 
-                      style={{ 
-                        transform: `rotate(${((statistics.questionStats.answeredQuestions + statistics.questionStats.openQuestions) / statistics.questionStats.totalQuestions) * 360}deg)`,
-                        clipPath: `polygon(50% 50%, 100% 0%, 100% 100%, 50% 50%)`,
-                        width: '100%',
-                        height: '100%'
-                      }}
-                    ></div>
-                  </div>
-                </div>
-                
-                <div className="status-legend">
-                  <div className="legend-item">
-                    <div className="legend-color answered"></div>
-                    <div className="legend-label">Atbildēti ({statistics.questionStats.answeredQuestions})</div>
-                  </div>
-                  <div className="legend-item">
-                    <div className="legend-color open"></div>
-                    <div className="legend-label">Atvērti ({statistics.questionStats.openQuestions})</div>
-                  </div>
-                  <div className="legend-item">
-                    <div className="legend-color closed"></div>
-                    <div className="legend-label">Slēgti ({statistics.questionStats.closedQuestions})</div>
-                  </div>
-                </div>
-              </div>
+  <div className="status-pie-container">
+    {/* Здесь нужно исправить отображение кругов статистики */}
+    <div className="status-pie">
+      {/* Расчет правильных пропорций для каждого сегмента */}
+      <div 
+        className="status-slice answered" 
+        style={{ 
+          clipPath: `polygon(50% 50%, 0% 0%, ${statistics.questionStats.answeredQuestions / statistics.questionStats.totalQuestions * 100}% 0%)`,
+          transform: 'rotate(0deg)',
+          width: '100%',
+          height: '100%'
+        }}
+      ></div>
+      <div 
+        className="status-slice open" 
+        style={{ 
+          clipPath: `polygon(50% 50%, ${statistics.questionStats.answeredQuestions / statistics.questionStats.totalQuestions * 100}% 0%, 100% ${statistics.questionStats.openQuestions / statistics.questionStats.totalQuestions * 100}%)`,
+          transform: 'rotate(0deg)',
+          width: '100%',
+          height: '100%'
+        }}
+      ></div>
+      <div 
+        className="status-slice closed" 
+        style={{ 
+          clipPath: `polygon(50% 50%, 100% ${statistics.questionStats.openQuestions / statistics.questionStats.totalQuestions * 100}%, 100% 100%, 0% 100%, 0% 0%)`,
+          transform: 'rotate(0deg)',
+          width: '100%',
+          height: '100%'
+        }}
+      ></div>
+    </div>
+  </div>
+  
+  <div className="status-legend">
+    <div className="legend-item">
+      <div className="legend-color answered"></div>
+      <div className="legend-label">Atbildēja ({statistics.questionStats.answeredQuestions})</div>
+    </div>
+    <div className="legend-item">
+      <div className="legend-color open"></div>
+      <div className="legend-label">Atvērti ({statistics.questionStats.openQuestions})</div>
+    </div>
+    <div className="legend-item">
+      <div className="legend-color closed"></div>
+      <div className="legend-label">Slēgti ({statistics.questionStats.closedQuestions})</div>
+    </div>
+  </div>
+</div>
             </div>
           </div>
         </div>
@@ -181,21 +206,24 @@ const AdminDashboardStats = () => {
         <h3>Populārākās kategorijas (tagi)</h3>
         <div className="tag-stats-chart">
           <div className="bar-chart">
-            {statistics.tagStats.map((tag) => (
+            {tagStats.map((tag) => (
               <div className="bar-group" key={tag.id}>
                 <div className="bar-label">{tag.name}</div>
                 <div className="bar-container">
                   <div 
                     className="bar" 
                     style={{ 
-                      width: `${(tag.count / Math.max(...statistics.tagStats.map(t => t.count))) * 100}%` 
+                      width: `${((tag.count || 0) / maxTagCount) * 100}%` 
                     }}
                   >
-                    {tag.count}
+                    {tag.count || 0}
                   </div>
                 </div>
               </div>
             ))}
+            {tagStats.length === 0 && (
+              <div className="empty-state">Nav atrasti populārie tagi</div>
+            )}
           </div>
         </div>
       </div>

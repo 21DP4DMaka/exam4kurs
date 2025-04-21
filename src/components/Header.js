@@ -74,7 +74,7 @@ function Header({ isLoggedIn, user, onLogout, setCurrentPage }) {
                   <button
                     className="btn btn-primary ask-question-btn"
                     onClick={(e) => handleNavigation('ask-question', e)}
-                  >
+                  > 
                     Uzdot jautājumu
                   </button>
                 )}
