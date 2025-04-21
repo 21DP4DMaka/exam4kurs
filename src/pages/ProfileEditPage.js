@@ -1,20 +1,31 @@
-// src/pages/ProfileEditPage.js - Fixed version with proper workplace handling
+// src/pages/ProfileEditPage.js - Updated to remove workplace field and add avatar selection
 import React, { useState, useEffect } from 'react';
 import './DashboardPage.css';
 import './UserProfilePage.css';
 import './ProfileEditPage.css';
 import { authService, userService } from '../services/api';
 
+// Predefined avatar options
+const AVATAR_OPTIONS = [
+  "https://via.placeholder.com/100/3498db/FFFFFF?text=1",
+  "https://via.placeholder.com/100/e74c3c/FFFFFF?text=2",
+  "https://via.placeholder.com/100/2ecc71/FFFFFF?text=3",
+  "https://via.placeholder.com/100/f39c12/FFFFFF?text=4",
+  "https://via.placeholder.com/100/9b59b6/FFFFFF?text=5",
+  "https://via.placeholder.com/100/34495e/FFFFFF?text=6",
+  "https://via.placeholder.com/100/1abc9c/FFFFFF?text=7",
+  "https://via.placeholder.com/100/95a5a6/FFFFFF?text=8"
+];
+
 function ProfileEditPage({ setCurrentPage }) {
   // User data state
   const [user, setUser] = useState(null);
   
-  // Form data state with password fields
+  // Form data state with password fields but without workplace
   const [formData, setFormData] = useState({
     username: '',
     email: '',
     bio: '',
-    workplace: '',
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
@@ -22,8 +33,7 @@ function ProfileEditPage({ setCurrentPage }) {
   });
   
   // UI state
-  const [avatar, setAvatar] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState('');
+  const [selectedAvatar, setSelectedAvatar] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -46,16 +56,22 @@ function ProfileEditPage({ setCurrentPage }) {
           username: userData.username || '',
           email: userData.email || '',
           bio: userData.bio || '',
-          workplace: userData.ProfessionalProfile?.workplace || '',
           currentPassword: '',
           newPassword: '',
           confirmPassword: '',
           profileImage: userData.profileImage || ''
         });
         
-        // Set preview image if user has a profile image
+        // Set selected avatar if user has a profile image
         if (userData.profileImage) {
-          setPreviewUrl(userData.profileImage);
+          // If the user's current avatar is one of our predefined options, select it
+          const avatarIndex = AVATAR_OPTIONS.indexOf(userData.profileImage);
+          if (avatarIndex !== -1) {
+            setSelectedAvatar(avatarIndex);
+          } else {
+            // Otherwise, we'll use their custom avatar
+            setSelectedAvatar(-1); // -1 indicates a custom avatar
+          }
         }
         
         setIsLoading(false);
@@ -78,34 +94,13 @@ function ProfileEditPage({ setCurrentPage }) {
     });
   };
 
-  // Handle avatar file selection
-  const handleAvatarChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        setError('Please select an image file (JPG, PNG)');
-        return;
-      }
-      
-      // Validate file size (max 2MB)
-      if (file.size > 2 * 1024 * 1024) {
-        setError('Image size must not exceed 2MB');
-        return;
-      }
-      
-      setAvatar(file);
-      
-      // Create preview URL
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewUrl(reader.result);
-      };
-      reader.readAsDataURL(file);
-      
-      // Clear any previous errors
-      setError(null);
-    }
+  // Handle avatar selection
+  const handleAvatarSelection = (index) => {
+    setSelectedAvatar(index);
+    setFormData({
+      ...formData,
+      profileImage: AVATAR_OPTIONS[index]
+    });
   };
 
   // Handle basic profile update (username, bio, avatar)
@@ -127,21 +122,9 @@ function ProfileEditPage({ setCurrentPage }) {
         updateData.append('bio', formData.bio);
       }
 
-      // Only include workplace for professionals
-      if (user.role === 'power' || user.role === 'admin') {
-        // IMPORTANT: Converting object to JSON string properly
-        const professionalData = JSON.stringify({ 
-          workplace: formData.workplace || '' 
-        });
-        
-        updateData.append('professionalData', professionalData);
-        console.log("Added professional data:", professionalData);
-      }
-
-      // Add avatar only if selected
-      if (avatar) {
-        updateData.append('profileImage', avatar);
-        console.log("Added avatar:", avatar.name, avatar.type, avatar.size);
+      // Add selected avatar's URL
+      if (selectedAvatar !== null && selectedAvatar >= 0) {
+        updateData.append('profileImage', AVATAR_OPTIONS[selectedAvatar]);
       }
       
       console.log("Form data being sent (entries):", Array.from(updateData.entries()));
@@ -170,7 +153,7 @@ function ProfileEditPage({ setCurrentPage }) {
         setError('Error updating profile. Please try again.');
       }
     } finally {
-      setIsSaving(true);
+      setIsSaving(false);
     }
   };
 
@@ -335,56 +318,25 @@ function ProfileEditPage({ setCurrentPage }) {
                     placeholder="Pastāstiet par sevi..."
                   ></textarea>
                 </div>
-                
-                {(user.role === 'power' || user.role === 'admin') && (
-                  <div className="form-group">
-                    <label htmlFor="workplace">Darba vieta</label>
-                    <input 
-                      type="text" 
-                      id="workplace" 
-                      name="workplace" 
-                      value={formData.workplace} 
-                      onChange={handleChange} 
-                      className="form-control"
-                      placeholder="Jūsu darba vieta vai uzņēmums"
-                    />
-                  </div>
-                )}
               </div>
               
               <div className="form-section">
-                <h3>Profila attēls</h3>
+                <h3>Izvēlieties profila attēlu</h3>
                 
-                <div className="avatar-upload-container">
-                  <div className="current-avatar">
-                    {previewUrl ? (
+                <div className="avatar-selection-grid">
+                  {AVATAR_OPTIONS.map((avatar, index) => (
+                    <div 
+                      key={index}
+                      className={`avatar-option ${selectedAvatar === index ? 'selected' : ''}`}
+                      onClick={() => handleAvatarSelection(index)}
+                    >
                       <img 
-                        src={previewUrl} 
-                        alt="Profila attēls" 
+                        src={avatar}
+                        alt={`Avatar option ${index + 1}`}
                         className="avatar-preview"
                       />
-                    ) : (
-                      <div className="avatar-placeholder">
-                        <span>Nav attēla</span>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="avatar-upload">
-                    <input 
-                      type="file" 
-                      id="avatarUpload" 
-                      accept="image/*" 
-                      onChange={handleAvatarChange}
-                      className="file-input"
-                    />
-                    <label htmlFor="avatarUpload" className="file-upload-btn">
-                      Izvēlēties attēlu
-                    </label>
-                    <small className="form-text">
-                      Atbalstītie formāti: JPG, PNG. Maksimālais izmērs: 2MB
-                    </small>
-                  </div>
+                    </div>
+                  ))}
                 </div>
               </div>
               

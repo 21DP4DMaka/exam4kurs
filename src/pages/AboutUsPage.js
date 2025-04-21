@@ -66,30 +66,6 @@ function AboutUsPage({ setCurrentPage }) {
           </div>
         </section>
         
-        <section className="about-team">
-          <h2>Mūsu komanda</h2>
-          <div className="team-members">
-            <div className="team-member">
-              <div className="member-photo"></div>
-              <h3>Deniss Ustinovičš</h3>
-              <p className="member-role">Dibinātājs un CEO</p>
-              <p className="member-desc">Denisam ir vairāk nekā 15 gadu pieredze IT nozarē, un viņš redzēja nepieciešamību pēc uzticamas platformas, kur cilvēki var saņemt profesionālu palīdzību.</p>
-            </div>
-            <div className="team-member">
-              <div className="member-photo"></div>
-              <h3>Artjoms Harkins</h3>
-              <p className="member-role">Produktu vadītāja</p>
-              <p className="member-desc">Artjoms ir atbildīga par platformas attīstību un nodrošina, ka tā atbilst gan lietotāju, gan profesionāļu vajadzībām.</p>
-            </div>
-            <div className="team-member">
-              <div className="member-photo"></div>
-              <h3>Rolands Kalniņš</h3>
-              <p className="member-role">Tehnoloģiju vadītājs</p>
-              <p className="member-desc">Rolands vada mūsu tehnoloģisko risinājumu izstrādi un uzturēšanu, nodrošinot drošu un ērtu platformas darbību.</p>
-            </div>
-          </div>
-        </section>
-        
         <section className="about-join-us">
           <div className="join-content">
             <h2>Pievienojies mums!</h2>

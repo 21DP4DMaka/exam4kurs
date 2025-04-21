@@ -364,28 +364,50 @@ exports.getUserAnswers = async (req, res) => {
 
 // Update profile endpoint - FIXED VERSION
 // Update profile endpoint - FIXED VERSION
+// Inside userController.js updateUserProfile function
 exports.updateUserProfile = async (req, res) => {
   const t = await sequelize.transaction();
   
   try {
     const userId = req.user.id;
-    let profileImagePath = null;
     
     console.log("Request body:", req.body);
     console.log("Request files:", req.files ? Object.keys(req.files) : "No files");
     
-    // Process profile image if uploaded with express-fileupload
-    if (req.files && req.files.profileImage) {
-      const profileImage = req.files.profileImage;
+    // Find the user
+    const user = await User.findByPk(userId);
+    
+    if (!user) {
+      await t.rollback();
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    // Extract profile data
+    const { username, bio, profileImage } = req.body;
+    
+    // Update user profile data
+    const updateData = {
+      username: username || user.username,
+      bio: bio !== undefined ? bio : user.bio,
+    };
+
+    // Add profileImage to update if provided directly as URL 
+    // This handles the avatar selection implementation
+    if (profileImage) {
+      updateData.profileImage = profileImage;
+    }
+    // If an actual file was uploaded (for backwards compatibility)
+    else if (req.files && req.files.profileImage) {
+      const profileImageFile = req.files.profileImage;
       
       // Validate file type (only image formats)
-      if (!profileImage.mimetype.startsWith('image/')) {
+      if (!profileImageFile.mimetype.startsWith('image/')) {
         await t.rollback();
         return res.status(400).json({ message: 'Only image formats (JPG, PNG) are allowed' });
       }
       
       // Validate file size (max 2MB)
-      if (profileImage.size > 2 * 1024 * 1024) {
+      if (profileImageFile.size > 2 * 1024 * 1024) {
         await t.rollback();
         return res.status(400).json({ message: 'Maximum image size is 2MB' });
       }
@@ -398,77 +420,18 @@ exports.updateUserProfile = async (req, res) => {
       
       // Generate unique filename
       const timestamp = Date.now();
-      const filename = `${userId}_${timestamp}_${profileImage.name.replace(/\s+/g, '_')}`;
+      const filename = `${userId}_${timestamp}_${profileImageFile.name.replace(/\s+/g, '_')}`;
       const filePath = path.join(uploadDir, filename);
       
       // Save file using express-fileupload's mv method
-      await profileImage.mv(filePath);
+      await profileImageFile.mv(filePath);
       
       // Set profile image path for database
-      profileImagePath = `/uploads/profile-images/${filename}`;
-      console.log("Saved profile image path:", profileImagePath);
-    }
-    
-    // Find the user
-    const user = await User.findByPk(userId);
-    
-    if (!user) {
-      await t.rollback();
-      return res.status(404).json({ message: 'User not found' });
-    }
-    
-    // Extract profile data
-    const { username, bio } = req.body;
-    let professionalData = null;
-    
-    if (req.body.professionalData) {
-      try {
-        professionalData = JSON.parse(req.body.professionalData);
-        console.log("Parsed professional data:", professionalData);
-      } catch (e) {
-        console.error("Error parsing JSON professionalData:", e);
-      }
-    }
-
-    console.log("Updating user with data:", {
-      username: username || user.username,
-      bio: bio !== undefined ? bio : user.bio,
-      profileImage: profileImagePath || user.profileImage,
-      workplace: professionalData?.workplace
-    });
-    
-    // Update user profile data
-    const updateData = {
-      username: username || user.username,
-      bio: bio !== undefined ? bio : user.bio,
-    };
-
-    // Only add profileImage to update if one was uploaded
-    if (profileImagePath) {
-      updateData.profileImage = profileImagePath;
+      updateData.profileImage = `/uploads/profile-images/${filename}`;
+      console.log("Saved profile image path:", updateData.profileImage);
     }
     
     await user.update(updateData, { transaction: t });
-    
-    // Update professional profile if exists and user is professional
-    if (professionalData && (user.role === 'power' || user.role === 'admin')) {
-      console.log("Updating professional profile with workplace:", professionalData.workplace);
-      
-      let profile = await ProfessionalProfile.findOne({ where: { userId } });
-      
-      if (profile) {
-        // Update existing profile
-        await profile.update({
-          workplace: professionalData.workplace !== undefined ? professionalData.workplace : profile.workplace
-        }, { transaction: t });
-      } else {
-        // Create new profile
-        profile = await ProfessionalProfile.create({
-          userId,
-          workplace: professionalData.workplace || null
-        }, { transaction: t });
-      }
-    }
     
     await t.commit();
     

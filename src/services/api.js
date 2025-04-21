@@ -102,9 +102,8 @@ export const userService = {
   createUserReview: (userId, reviewData) => apiClient.post(`/reviews/users/${userId}/reviews`, reviewData),
   updatePassword: (passwordData) => apiClient.put('/users/password', passwordData),
   
-  // Fixed function for profile updates
+  // Updated function for profile updates - simplified without workplace and supporting direct profileImage URLs
   updateUserProfile: (formData) => {
-    // For express-fileupload, we need to make sure we're sending the data correctly
     // Get auth token
     const token = localStorage.getItem('token');
     
@@ -112,8 +111,6 @@ export const userService = {
     console.log('Updating profile with form data:', formData);
     
     // Create request config with correct headers
-    // For express-fileupload, we don't need to set the Content-Type
-    // The browser will set it automatically with the boundary
     const config = {
       headers: {
         'Authorization': `Bearer ${token}`
@@ -124,7 +121,6 @@ export const userService = {
     return apiClient.put('/users/profile', formData, config);
   }
 };
-
 
 // NEW: Question attachment services
 export const questionAttachmentService = {
