@@ -211,7 +211,7 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
         status: 'closed'
       });
       
-      setSubmitSuccess('Answer accepted as solution!');
+      setSubmitSuccess('Atbilde pieņemta kā risinājums!');
       
       // Remove success message after 3 seconds
       setTimeout(() => {
@@ -512,7 +512,7 @@ function QuestionViewPage({ questionId, user, setCurrentPage }) {
                   <div className="form-group">
                     <textarea
                       className="form-control"
-                      placeholder="Write your answer here..."
+                      placeholder="Raksti savu atbildi šeit..."
                       value={answerContent}
                       onChange={(e) => setAnswerContent(e.target.value)}
                       rows={8}

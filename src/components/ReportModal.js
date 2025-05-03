@@ -6,12 +6,14 @@ function ReportModal({ isOpen, onClose, onSubmit, type = 'question' }) {
   const [reason, setReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [isAcknowledged, setIsAcknowledged] = useState(false);
   
   // Reset form when modal is opened
   useEffect(() => {
     if (isOpen) {
       setReason('');
       setError(null);
+      setIsAcknowledged(false);
     }
   }, [isOpen]);
 
@@ -29,6 +31,11 @@ function ReportModal({ isOpen, onClose, onSubmit, type = 'question' }) {
     // Validate form
     if (!reason.trim()) {
       setError('Lūdzu, norādiet ziņojuma iemeslu');
+      return;
+    }
+    
+    if (!isAcknowledged) {
+      setError('Lūdzu, apstipriniet, ka saprotat ziņošanas noteikumus');
       return;
     }
     
@@ -85,6 +92,22 @@ function ReportModal({ isOpen, onClose, onSubmit, type = 'question' }) {
             </small>
           </div>
           
+          <div className="form-group">
+            <div className="checkbox-container" style={{ display: 'flex', alignItems: 'flex-start', marginTop: '15px' }}>
+              <input 
+                type="checkbox" 
+                id="acknowledgeWarning" 
+                checked={isAcknowledged}
+                onChange={(e) => setIsAcknowledged(e.target.checked)}
+                disabled={isSubmitting}
+                style={{ marginRight: '10px', marginTop: '3px' }}
+              />
+              <label htmlFor="acknowledgeWarning" style={{ fontSize: '0.9rem', color: '#4a5568' }}>
+                Es apzinos, ka, ja mana sūdzība ir nepamatota, administratoram ir tiesības jūs bloķēt.
+              </label>
+            </div>
+          </div>
+          
           <div className="tag-modal-footer">
             <button 
               type="button" 
@@ -97,7 +120,7 @@ function ReportModal({ isOpen, onClose, onSubmit, type = 'question' }) {
             <button 
               type="submit" 
               className="btn btn-primary"
-              disabled={isSubmitting || !reason.trim()}
+              disabled={isSubmitting || !reason.trim() || !isAcknowledged}
             >
               {isSubmitting ? 'Iesniedz...' : 'Iesniegt ziņojumu'}
             </button>

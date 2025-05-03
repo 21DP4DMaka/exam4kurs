@@ -329,19 +329,23 @@ exports.deleteQuestion = async (req, res) => {
     res.status(500).json({ message: 'Servera kļūda dzēšot jautājumu' });
   }
 };
-
-// Add a reason for deletion
-exports.reportQuestion = async (req, res) => {
+exports.reportUser = async (req, res) => {
   try {
-    const questionId = req.params.id;
+    const userId = req.params.id;
     const { reason } = req.body;
+    const reporterId = req.user.id; // Get the ID of the user who is reporting
     
-    // Find the question
-    const question = await Question.findByPk(questionId);
+    // Find the user
+    const user = await User.findByPk(userId);
     
-    if (!question) {
-      return res.status(404).json({ message: 'Jautājums nav atrasts' });
+    if (!user) {
+      return res.status(404).json({ message: 'Lietotājs nav atrasts' });
     }
+    
+    // Find the reporter to get their username
+    const reporter = await User.findByPk(reporterId, {
+      attributes: ['username']
+    });
     
     // Find admin users
     const admins = await User.findAll({
@@ -352,7 +356,50 @@ exports.reportQuestion = async (req, res) => {
     for (const admin of admins) {
       await Notification.create({
         userId: admin.id,
-        content: `Jautājums ID: ${questionId} tika ziņots. Iemesls: ${reason}`,
+        content: `Lietotājs ${user.username} (ID: ${userId}) tika ziņots. Ziņotājs: ${reporter ? reporter.username : 'Nezināms lietotājs'}. Iemesls: ${reason}`,
+        type: 'system',
+        isRead: false
+      });
+    }
+    
+    res.json({
+      message: 'Ziņojums par lietotāju veiksmīgi iesniegts',
+      userId: userId
+    });
+  } catch (error) {
+    console.error('Error reporting user:', error);
+    res.status(500).json({ message: 'Servera kļūda ziņojot par lietotāju' });
+  }
+};
+// Add a reason for deletion
+exports.reportQuestion = async (req, res) => {
+  try {
+    const questionId = req.params.id;
+    const { reason } = req.body;
+    const reporterId = req.user.id; // Get the ID of the user who is reporting
+    
+    // Find the question
+    const question = await Question.findByPk(questionId);
+    
+    if (!question) {
+      return res.status(404).json({ message: 'Jautājums nav atrasts' });
+    }
+    
+    // Find the reporter to get their username
+    const reporter = await User.findByPk(reporterId, {
+      attributes: ['username']
+    });
+    
+    // Find admin users
+    const admins = await User.findAll({
+      where: { role: 'admin' }
+    });
+    
+    // Create notification for each admin
+    for (const admin of admins) {
+      await Notification.create({
+        userId: admin.id,
+        content: `Jautājums ID: ${questionId} tika ziņots. Ziņotājs: ${reporter ? reporter.username : 'Nezināms lietotājs'}. Iemesls: ${reason}`,
         type: 'system',
         relatedQuestionId: questionId,
         isRead: false
