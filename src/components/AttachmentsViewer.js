@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './AttachmentsViewer.css';
 
 const AttachmentsViewer = ({ attachments, questionAttachmentService }) => {
@@ -24,10 +24,17 @@ const AttachmentsViewer = ({ attachments, questionAttachmentService }) => {
     // Create a temporary anchor element to initiate the download
     const link = document.createElement('a');
     link.href = downloadUrl;
-    link.setAttribute('download', attachment.filename);
+    link.setAttribute('download', attachment.originalname || attachment.filename);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+  
+  // Handle opening the PDF in a new tab
+  const handleOpenPdf = (attachment, e) => {
+    e.stopPropagation(); // Prevent the click from triggering the parent handler
+    const pdfUrl = questionAttachmentService.downloadAttachment(attachment.id);
+    window.open(pdfUrl, '_blank');
   };
 
   // Format file size
@@ -58,7 +65,7 @@ const AttachmentsViewer = ({ attachments, questionAttachmentService }) => {
                     <span className="attachment-icon">
                       {attachment.mimetype === 'application/pdf' ? '📄' : '🖼️'}
                     </span>
-                    <span className="attachment-name">{attachment.filename}</span>
+                    <span className="attachment-name">{attachment.originalname || attachment.filename}</span>
                     <span className="attachment-size">
                       {formatFileSize(attachment.size)}
                     </span>
@@ -83,16 +90,25 @@ const AttachmentsViewer = ({ attachments, questionAttachmentService }) => {
                 {expandedAttachment && expandedAttachment.id === attachment.id && (
                   <div className="attachment-preview">
                     {attachment.mimetype === 'application/pdf' ? (
-                      <embed 
-                        src={questionAttachmentService.downloadAttachment(attachment.id)} 
-                        type="application/pdf"
-                        width="100%"
-                        height="500px"
-                      />
-                    ) : attachment.mimetype.startsWith('image/png') ? (
+                      <div className="pdf-preview">
+                        <div className="pdf-icon">📄</div>
+                        <div className="pdf-info">
+                          <h5 className="pdf-name">{attachment.originalname || attachment.filename}</h5>
+                          <p className="pdf-description">PDF failu ({formatFileSize(attachment.size)})</p>
+                          <div className="pdf-actions">
+                            <button 
+                              className="btn btn-primary pdf-view-btn"
+                              onClick={(e) => handleOpenPdf(attachment, e)}
+                            >
+                              Atvērt PDF
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : attachment.mimetype.startsWith('image/') ? (
                       <img 
                         src={questionAttachmentService.downloadAttachment(attachment.id)} 
-                        alt={attachment.filename}
+                        alt={attachment.originalname || attachment.filename}
                         className="attachment-image"
                       />
                     ) : (
